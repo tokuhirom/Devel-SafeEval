@@ -43,7 +43,10 @@ sub run {
     my $ret = eval {
         local $SIG{ALRM} = sub { die 'timeout' };
         alarm $args{timeout};
-        $class->_body(%args);
+        my ($pid, $ret) = $class->_body(%args);
+        alarm 0;
+        kill 9, $pid;
+        $ret;
     };
     if ($@) {
         return $@;
@@ -66,18 +69,15 @@ sub _body {
             $class->_run_child($cout, %args);
         };
         print $@ if $@;
+        exit;
     } elsif (! defined $pid) {
         die "cannot fork: $!";
     } else {
         close $cout;
 
-        my $kid = 0;
-        do {
-            $kid = waitpid($pid, WNOHANG);
-        } while ($kid < 0);
-
+        local $SIG{CHLD} = sub { waitpid($pid, 0) };
         my $out = join '', <$pout>;
-        return $out;
+        return ($pid, $out);
     }
 }
 
