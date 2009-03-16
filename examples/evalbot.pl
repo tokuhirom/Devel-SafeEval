@@ -29,7 +29,7 @@ my $irc = Bot::BasicBot::Pluggable->new(
 $irc->load(
     'SafeEval' => {
         timeout   => 1,
-        arguments => ['-Mlocal::lib=/home/dankogai/locallib/'],
+        # arguments => ['-Mlocal::lib=/home/dankogai/locallib/'],
     }
 );
 $irc->run;
