@@ -1,10 +1,10 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use POE;
-use POE::Component::IRC;
 use local::lib '/home/dankogai/locallib/';
 use lib 'lib';
+use POE;
+use POE::Component::IRC;
 use Devel::SafeEval;
 use Bot::BasicBot::Pluggable;
 
