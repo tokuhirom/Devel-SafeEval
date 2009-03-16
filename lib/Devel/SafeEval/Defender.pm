@@ -47,22 +47,20 @@ sub import {
         *DynaLoader::dl_install_xsub = $fake;
         my @trueINC;
 
+        my %loading;
         unshift @INC, sub {
             shift;
             my $module = "$_[0]"; # barrier for overload-stringify attack
             die "\@INC has been modified\n"
               unless "@INC" eq "@trueINC";
-            return undef ## no critic
-              unless $trusted{$module} && \&DynaLoader::dl_install_xsub != $ix;
-            eval {
-                local *DynaLoader::dl_install_xsub = $ix;
+            my $wanted = $trusted{$module} ? $ix : $fake;
+            return undef if $wanted == \&DynaLoader::dl_install_xsub;
+            do {
+                local *DynaLoader::dl_install_xsub = $wanted;
                 require $module;
             };
-            *DynaLoader::dl_install_xsub = $fake;
-            die $@ if $@;
 
-            pipe my $rfh, my $wfh
-            or die $!;
+            pipe my $rfh, my $wfh or die $!;
             print $wfh 1;
             close $wfh;
             $rfh;

@@ -6,9 +6,30 @@ use Devel::SafeEval;
 like(
     Devel::SafeEval->run(
         timeout => 1,
+        code    => 'use Opcode; print "OK"',
+    ),
+    qr{OK}
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
         code    => 'use Encode; print "OK"',
     ),
     qr{OK}
+);
+
+unlike(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => q{
+            use strict;
+            sub strict::import { DynaLoader::dl_install_xsub };
+            use Encode;
+            print "OK";
+        },
+    ),
+    qr{Usage: DynaLoader::dl_install_xsub}
 );
 
 like(
