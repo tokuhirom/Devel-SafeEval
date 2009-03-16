@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 13;
 use Devel::SafeEval;
 
 like(
@@ -17,14 +17,6 @@ is(
         code    => 'print join ",", sort keys %ENV',
     ),
     'PATH,PERL5LIB',
-);
-
-like(
-    Devel::SafeEval->run(
-        timeout => 1,
-        code    => '%INC=(); use Encode; print "OK"',
-    ),
-    qr{OK}
 );
 
 like(
