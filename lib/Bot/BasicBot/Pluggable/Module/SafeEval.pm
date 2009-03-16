@@ -21,6 +21,7 @@ sub told {
     } elsif ($body =~ /^!ever$/) {
         $Devel::SafeEval::VERSION;
     } elsif ($body =~ /^!reload$/) {
+        `git pull origin master`;
         require Module::Reload;
         Module::Reload->check;
         "reloaded";
