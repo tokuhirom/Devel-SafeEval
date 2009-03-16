@@ -4,7 +4,7 @@ use warnings;
 use base qw(Bot::BasicBot::Pluggable::Module);
 use Devel::SafeEval;
 
-my $badre = qr/^(?:Devel::|B::|Acme::|IO::|IPC::|File::|PadWalker::)/;
+my $badre = qr/^(?:Devel::|B::|Acme::|IO::|IPC::|File::|PadWalker::|PeekPoke)/;
 
 sub told {
     my ($self, $msg) = @_;
