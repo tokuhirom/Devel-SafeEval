@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Devel::SafeEval;
 
 like(
@@ -68,4 +68,13 @@ like(
     ),
     qr{OK},
     'allow Math::BigInt::FastCalc'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => 'BEGIN{ unshift @INC, sub { };} use Math::BigInt::FastCalc; print "OK"',
+    ),
+    qr{do not modify \@INC},
+    'disallow modify @INC'
 );

@@ -48,9 +48,13 @@ sub import {
         require XSLoader;
         my $xsloader_path = $INC{'XSLoader.pm'};
         my $dynaloader_path = $INC{'DynaLoader.pm'};
+        my $TRUE_INC = "@INC";
         *DynaLoader::dl_install_xsub = sub {
             my $c0 = [caller(0)]->[1];
             my $c1 = [caller(1)]->[1];
+            if ($TRUE_INC ne "@INC") {
+                die "do not modify \@INC";
+            }
             if (($c0 eq $xsloader_path||$c0 eq $dynaloader_path) && $c1 =~ $trusted_re) {
                 goto $ix;
             } else {
