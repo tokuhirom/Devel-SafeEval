@@ -20,7 +20,7 @@ sub import {
         die 'you break a Carp::croak?';
     };
 
-    %ENV = ();
+    %ENV = (PATH => '', PERL5LIB => '');
 }
 
 1;
