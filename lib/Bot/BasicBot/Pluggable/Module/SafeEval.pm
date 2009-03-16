@@ -34,7 +34,7 @@ sub told {
             "I hate $badre";
         } else {
             system( $^X, '-MCPAN', '-Mlocal::lib=/home/dankogai/locallib/',
-                '-e', "CPAN::install($mod)" );
+                '-e', "CPAN::install('$mod')" );
         }
     }
 }
