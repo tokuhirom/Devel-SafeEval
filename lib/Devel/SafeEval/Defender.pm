@@ -29,7 +29,7 @@ sub import {
           map { $_ => 1 } @TRUSTED;
 
         my $ix = \&DynaLoader::dl_install_xsub;
-        my $fake = sub { die "no xs\n" };
+        my $fake = sub { die "no xs($_[0])\n" };
         *DynaLoader::dl_install_xsub = $fake;
         my @trueINC;
 
