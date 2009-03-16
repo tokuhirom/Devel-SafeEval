@@ -31,9 +31,7 @@ my $irc = Bot::BasicBot::Pluggable->new(
     nick     => 'danbot',
 );
 $irc->load('SafeEval' => {
-    root => '/home/safeeval/',
     timeout => 1,
-    uid => $uid,
 });
 $irc->run;
 
