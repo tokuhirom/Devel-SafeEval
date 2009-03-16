@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 11;
 use Devel::SafeEval;
 
 like(
@@ -85,4 +85,13 @@ like(
     ),
     qr{'dump' trapped by operation mask},
     'dump'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => 'use Devel::Peek',
+    ),
+    qr{do not load xs},
+    'Devel::Peek is dangerous...(that can detect address)'
 );
