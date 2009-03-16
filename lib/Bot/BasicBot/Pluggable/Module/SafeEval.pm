@@ -35,9 +35,11 @@ sub told {
         } else {
             join '', `PERL_AUTOINSTALL="--defaultdeps" $^X -MCPAN -Mlocal::lib=/home/dankogai/locallib/ -e 'CPAN::install("$mod")'`;
         }
-    } elsif ($body =~ /^!modules$/) {
+    } elsif ($body =~ /^!modules\s+(\S+)$/) {
+        my $dir = $1;
+        return 'directory traversal' if $dir =~ /\.\./;
         my @d;
-        opendir my $d, "/home/dankogai/locallib/lib/perl5/" or die $!;
+        opendir my $d, "/home/dankogai/locallib/$1" or die $!;
         push @d, $_ for readdir($d);
         closedir($d);
         return "@d";
