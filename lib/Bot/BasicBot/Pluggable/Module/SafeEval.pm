@@ -27,8 +27,8 @@ sub told {
         "reloaded";
     } elsif ($body =~ /^!cpan\s+(\S+)$/) {
         my $mod = $1;
-        if ($mod =~ /^(?:Devel::|B::)/) {
-            "I hate Devel::* packages";
+        if ($mod =~ /^(?:Devel::|B::|Acme::)/) {
+            "I hate Devel::*, B::*, Acme::* packages";
         } else {
             require CPAN;
             CPAN::install($mod);
