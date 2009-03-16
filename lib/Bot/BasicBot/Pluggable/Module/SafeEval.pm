@@ -18,6 +18,8 @@ sub told {
             code => $code,
         );
         substr($res, 0, 100);
+    } elsif ($body =~ /^!ever$/) {
+        $Devel::SafeEval::VERSION;
     }
 }
 
