@@ -33,8 +33,7 @@ sub told {
         if ($mod =~ $badre) {
             "I hate $badre";
         } else {
-            system( $^X, '-MCPAN', '-Mlocal::lib=/home/dankogai/locallib/',
-                '-e', "CPAN::install('$mod')" );
+            `$^X -MCPAN -Mlocal::lib=/home/dankogai/locallib/ -e 'CPAN::install("$mod")'`;
         }
     }
 }
