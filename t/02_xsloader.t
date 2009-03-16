@@ -35,6 +35,19 @@ unlike(
 unlike(
     Devel::SafeEval->run(
         timeout => 1,
+        code    => q{#line 1 "HOGE"
+            use strict;
+            sub strict::import { DynaLoader::dl_install_xsub };
+            use Encode;
+            print "OK";
+        },
+    ),
+    qr{Usage: DynaLoader::dl_install_xsub}
+);
+
+unlike(
+    Devel::SafeEval->run(
+        timeout => 1,
         code    => 'use less do { DynaLoader::dl_install_xsub }',
     ),
     qr{Usage: DynaLoader::dl_install_xsub}
