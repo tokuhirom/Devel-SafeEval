@@ -1,7 +1,7 @@
 package Devel::SafeEval;
 use strict;
 use warnings;
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 our @ISA;
 use BSD::Resource 'setrlimit';
 use Params::Validate ':all';
