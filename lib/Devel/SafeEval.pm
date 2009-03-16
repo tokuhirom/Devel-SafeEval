@@ -71,8 +71,8 @@ sub _body {
         local $SIG{ALRM} = sub { die "timeout" };
         alarm $args{timeout};
         $pid = open3( my ( $wfh, $rfh, $efh ),
-            $args{perl}, '-Mblib', '-MDevel::SafeEval::Defender', @args,
-            @{ $args{arguments} } );
+            $args{perl}, '-Mblib', '-MDevel::SafeEval::Defender', @{ $args{arguments} },
+            @args);
         local $SIG{CHLD} = sub { waitpid($pid, 0) };
         print $wfh $args{code} and close $wfh;
         local $/;
