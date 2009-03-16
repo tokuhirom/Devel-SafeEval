@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 6;
+use Test::More tests => 7;
 use Devel::SafeEval;
 
 like(
@@ -61,3 +61,11 @@ like(
     qr{OK}
 );
 
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => 'use Math::BigInt::FastCalc; print "OK"',
+    ),
+    qr{OK},
+    'allow Math::BigInt::FastCalc'
+);

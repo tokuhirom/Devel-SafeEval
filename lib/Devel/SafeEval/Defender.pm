@@ -7,7 +7,7 @@ my $SYS_PROTECT_VERSION = 0.02;
 my @TRUSTED;
 BEGIN {
     @TRUSTED = (
-        qw(XSLoader.pm Opcode.pm), # core modules
+        qw(XSLoader.pm Opcode.pm Math/BigInt/FastCalc.pm), # core modules
 
         qw(Moose.pm Class/MOP.pm), # Moose related stuff
 
@@ -47,13 +47,14 @@ sub import {
         };
         require XSLoader;
         my $xsloader_path = $INC{'XSLoader.pm'};
+        my $dynaloader_path = $INC{'DynaLoader.pm'};
         *DynaLoader::dl_install_xsub = sub {
             my $c0 = [caller(0)]->[1];
             my $c1 = [caller(1)]->[1];
-            unless ($c0 eq $xsloader_path && $c1 =~ $trusted_re) {
-                die "no xs($c0,$c1)";
-            } else {
+            if (($c0 eq $xsloader_path||$c0 eq $dynaloader_path) && $c1 =~ $trusted_re) {
                 goto $ix;
+            } else {
+                die "no xs($c0,$c1)";
             }
         };
     }
