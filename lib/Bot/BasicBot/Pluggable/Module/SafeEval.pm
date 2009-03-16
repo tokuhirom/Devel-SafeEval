@@ -38,6 +38,7 @@ sub told {
             local::lib->import('/home/dankogai/locallib/');
             $ENV{PERL_AUTOINSTALL} = '--defaultdeps';
             CPAN::install($mod);
+            "installed $mod";
         }
     } elsif ($body =~ /^!modules\s+(\S+)$/) {
         my $dir = $1;
