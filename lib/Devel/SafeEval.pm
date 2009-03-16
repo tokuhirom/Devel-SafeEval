@@ -10,6 +10,7 @@ use XSLoader;
 use Time::HiRes 'alarm';
 use Carp ();
 use DynaLoader;
+use File::Temp;
 require Devel::SafeEval::Defender;
 
 # XSLoader::load(__PACKAGE__, $VERSION);
@@ -55,6 +56,7 @@ sub run {
 sub _body {
     my ($class, %args) = @_;
 
+    my $tmp = File::Temp->new(UNLINK => 1);
     my $pid = -1;
     local $@;
     my $stdout = '';
@@ -70,11 +72,12 @@ sub _body {
         my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open,:sys_db,:filesys_open,:others,dofile,bind,connect,listen,accept,shutdown,gsockopt,getsockname,flock,ioctl,reset,dbstate,:dangerous,} . $deny);
         local $SIG{ALRM} = sub { die "timeout" };
         alarm $args{timeout};
+        print $tmp $args{code};
         $pid = open3( my ( $wfh, $rfh, $efh ),
             $args{perl}, '-Mblib', '-MDevel::SafeEval::Defender', @{ $args{arguments} },
-            @args);
+            @args, $tmp->filename);
         local $SIG{CHLD} = sub { waitpid($pid, 0) };
-        print $wfh $args{code} and close $wfh;
+        close $wfh;
         local $/;
         $stdout = <$rfh>;
         close $rfh;
