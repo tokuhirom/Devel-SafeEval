@@ -29,7 +29,7 @@ sub import {
     no warnings 'redefine';
     require DynaLoader;
     *DynaLoader::boot_DynaLoader = sub {
-        Carp::croak 'you should not call boot_DynaLoader';
+        Carp::croak 'you should not call boot_DynaLoader twice';
         die 'you break a Carp::croak?';
     };
 
@@ -38,35 +38,24 @@ sub import {
     {
         # use kazuho method
         # http://d.hatena.ne.jp/kazuhooku/20090316/1237205628
-        no warnings qw(redefine);
-        my %trusted =
-          map { $_ => 1 } @TRUSTED;
 
         my $ix = \&DynaLoader::dl_install_xsub;
-        my $fake = sub { die "no xs($_[0])\n" };
-        *DynaLoader::dl_install_xsub = $fake;
-        my @trueINC;
 
-        my %loading;
-        unshift @INC, sub {
-            shift;
-            my $module = "$_[0]"; # barrier for overload-stringify attack
-            die "\@INC has been modified\n"
-              unless "@INC" eq "@trueINC";
-            my $wanted = $trusted{$module} ? $ix : $fake;
-            return undef if $wanted == \&DynaLoader::dl_install_xsub;
-            do {
-                local *DynaLoader::dl_install_xsub = $wanted;
-                require $module;
-            };
-
-            pipe my $rfh, my $wfh or die $!;
-            print $wfh 1;
-            close $wfh;
-            $rfh;
+        my $trusted_re = do {
+            my $t = join '|', @TRUSTED;
+            qr{\/(?:$t)$};
         };
-
-        @trueINC = @INC;
+        require XSLoader;
+        my $xsloader_path = $INC{'XSLoader.pm'};
+        *DynaLoader::dl_install_xsub = sub {
+            my $c0 = [caller(0)]->[1];
+            my $c1 = [caller(1)]->[1];
+            unless ($c0 eq $xsloader_path && $c1 =~ $trusted_re) {
+                die "no xs($c0,$c1)";
+            } else {
+                goto $ix;
+            }
+        };
     }
 }
 

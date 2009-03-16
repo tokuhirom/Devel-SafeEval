@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 13;
+use Test::More tests => 16;
 use Devel::SafeEval;
 
 like(
@@ -116,3 +116,29 @@ like(
     'DynaLoader::boot_DynaLoader'
 );
 
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => '#line',
+    ),
+    qr{#line is not allowed},
+    'deny #line'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => "warn '#line'; warn 'OK!'",
+    ),
+    qr{OK!},
+    'allow "#line" in string'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => "1;\n#line 3 'hoge'",
+    ),
+    qr{#line is not allowed},
+    'deny #line in the next line'
+);

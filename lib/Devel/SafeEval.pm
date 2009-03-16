@@ -56,6 +56,10 @@ sub run {
 sub _body {
     my ($class, %args) = @_;
 
+    if ($args{code} =~ /^#line/m) {
+        return '#line is not allowed';
+    }
+
     my $tmp = File::Temp->new(UNLINK => 1);
     my $pid = -1;
     local $@;
@@ -72,11 +76,11 @@ sub _body {
         my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open,:sys_db,:filesys_open,:others,dofile,bind,connect,listen,accept,shutdown,gsockopt,getsockname,flock,ioctl,reset,dbstate,:dangerous,} . $deny);
         local $SIG{ALRM} = sub { die "timeout" };
         alarm $args{timeout};
-        print $tmp $args{code};
         $pid = open3( my ( $wfh, $rfh, $efh ),
             $args{perl}, '-Ilib', '-MDevel::SafeEval::Defender', @{ $args{arguments} },
-            @args, $tmp->filename);
+            @args);
         local $SIG{CHLD} = sub { waitpid($pid, 0) };
+        print $wfh $args{code};
         close $wfh;
         local $/;
         $stdout = <$rfh>;
