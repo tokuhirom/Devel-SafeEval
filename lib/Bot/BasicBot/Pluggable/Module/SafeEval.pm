@@ -28,14 +28,13 @@ sub told {
         require Module::Reload;
         Module::Reload->check;
         "reloaded";
-    } elsif ($body =~ /^!cpan\s+(\S+)$/) {
+    } elsif ($body =~ /^!cpan\s+([a-zA-Z:_-]+)$/) {
         my $mod = $1;
         if ($mod =~ $badre) {
             "I hate $badre";
         } else {
-            require CPAN;
-            CPAN::Shell->install($mod);
-            "$mod installed";
+            system( $^X, '-MCPAN', '-Mlocal::lib=/home/dankogai/locallib/',
+                '-e', "CPAN::install($mod)" );
         }
     }
 }
