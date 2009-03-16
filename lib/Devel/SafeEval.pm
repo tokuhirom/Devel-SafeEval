@@ -29,9 +29,7 @@ sub run {
     my $class = shift;
     my %args = validate(
         @_ => {
-            root    => 0,
             code    => 1,
-            uid     => 1,
             timeout => 1,
             perl    => {
                 default => $^X,
@@ -92,7 +90,6 @@ Devel::SafeEval -
   Devel::SafeEval->run(
       code => 'fork()',
       timeout => 1,
-      root => '/path/to/root',
       uid  => 1,
   );
 
