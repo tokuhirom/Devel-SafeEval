@@ -58,10 +58,10 @@ sub _body {
     local $@;
     my $stdout = '';
     eval {
-        my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open}, '-MDevel::SafeEval::Defender');
+        my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open,:sys_db,:filesys_open,:filesys_read,:others,dofile,bind,connect,listen,accept,shutdown,gsockopt,getsockname,flock,ioctl}, '-MDevel::SafeEval::Defender');
         local $SIG{ALRM} = sub { die "timeout" };
         alarm $args{timeout};
-        $pid = open3(my ($wfh, $rfh, $efh), $args{perl}, '-Mblib', @args);
+        $pid = open3(my ($wfh, $rfh, $efh), $args{perl}, '-Mblib', '-MDevel::SafeEval::Defender', @args);
         local $SIG{CHLD} = sub { waitpid($pid, 0) };
         print $wfh $args{code} and close $wfh;
         local $/;

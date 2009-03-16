@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 8;
+use Test::More tests => 9;
 use Devel::SafeEval;
 
 like(
@@ -69,3 +69,11 @@ like(
     'open F, "|-"'
 );
 
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => 'opendir F, "|-"',
+    ),
+    qr{'opendir' trapped by operation mask},
+    'opendir'
+);
