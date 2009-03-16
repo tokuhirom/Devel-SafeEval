@@ -35,6 +35,9 @@ sub run {
             rlimit_nofile  => {
                 default => 7,
             },
+            arguments => {
+                default => [],
+            },
         }
     );
 
@@ -59,7 +62,7 @@ sub _body {
         my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open,:sys_db,:filesys_open,:filesys_read,:others,dofile,bind,connect,listen,accept,shutdown,gsockopt,getsockname,flock,ioctl,reset,dbstate,:dangerous}, '-MDevel::SafeEval::Defender');
         local $SIG{ALRM} = sub { die "timeout" };
         alarm $args{timeout};
-        $pid = open3(my ($wfh, $rfh, $efh), $args{perl}, '-Mblib', '-MDevel::SafeEval::Defender', @args);
+        $pid = open3(my ($wfh, $rfh, $efh), $args{perl}, '-Mblib', '-MDevel::SafeEval::Defender', @args, @{$args{arguments}});
         local $SIG{CHLD} = sub { waitpid($pid, 0) };
         print $wfh $args{code} and close $wfh;
         local $/;

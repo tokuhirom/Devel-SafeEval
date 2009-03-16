@@ -25,6 +25,15 @@ sub told {
         require Module::Reload;
         Module::Reload->check;
         "reloaded";
+    } elsif ($body =~ /^!cpan\s+(\S+)$/) {
+        my $mod = $1;
+        if ($mod =~ /^(?:Devel::|B::)/) {
+            "I hate Devel::* packages";
+        } else {
+            require CPAN;
+            CPAN::install($mod);
+            "$mod installed";
+        }
     }
 }
 

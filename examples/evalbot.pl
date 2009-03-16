@@ -4,6 +4,7 @@ use warnings;
 use POE;
 use POE::Component::IRC;
 use lib 'lib';
+use local::lib '/home/dankogai/locallib/';
 use blib;
 use Devel::SafeEval;
 use Bot::BasicBot::Pluggable;
@@ -26,6 +27,6 @@ my $irc = Bot::BasicBot::Pluggable->new(
 );
 $irc->load('SafeEval' => {
     timeout => 1,
-});
+    arguments => ['-Mlocal::lib=/home/dankogai/locallib/'],
+);
 $irc->run;
-
