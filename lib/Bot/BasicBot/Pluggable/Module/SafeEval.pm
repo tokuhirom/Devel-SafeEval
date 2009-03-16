@@ -37,8 +37,8 @@ sub told {
             require Module::Install;
             local::lib->import('/home/dankogai/locallib/');
             $ENV{PERL_AUTOINSTALL} = '--defaultdeps';
-            CPAN::install($mod);
-            "installed $mod";
+            my $msg = CPAN::Shell->install($mod) || '';
+            "installed $mod($msg)";
         }
     } elsif ($body =~ /^!modules\s+(\S+)$/) {
         my $dir = $1;
