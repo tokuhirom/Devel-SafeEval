@@ -6,8 +6,8 @@ use Safe;
 my $SYS_PROTECT_VERSION = 0.02;
 
 sub import {
-    XSLoader::load('Sys::Protect', $SYS_PROTECT_VERSION);
-    Sys::Protect->import();
+    # XSLoader::load('Sys::Protect', $SYS_PROTECT_VERSION);
+    # Sys::Protect->import();
 
     no warnings 'redefine';
     require DynaLoader;
