@@ -28,6 +28,20 @@ sub told {
         require Module::Reload;
         Module::Reload->check;
         "reloaded";
+    } elsif ($body =~ /^!cpan-mkmyconfig$/) {
+        require CPAN::FirstTime;
+        require CPAN;
+        my $cpanpm = '/home/dankogai/.cpan/CPAN/MyConfig.pm';
+        File::Path::mkpath(File::Basename::dirname($cpanpm)) unless -e $cpanpm;
+        $CPAN::Config ||= {};
+        $CPAN::Config = {
+            %$CPAN::Config,
+            build_dir         => undef,
+            cpan_home         => undef,
+            keep_source_where => undef,
+            histfile          => undef,
+        };
+        CPAN::FirstTime::init($cpanpm, %args);
     } elsif ($body =~ /^!cpan\s+([a-zA-Z:_-]+)$/) {
         my $mod = $1;
         if ($mod =~ $badre) {
@@ -36,6 +50,7 @@ sub told {
             require CPAN;
             require Module::Install;
             local::lib->import('/home/dankogai/locallib/');
+            $ENV{HOME} = '/home/dankogai/';
             $ENV{PERL_AUTOINSTALL} = '--defaultdeps';
             my $msg = CPAN::Shell->install($mod) || '';
             "installed $mod($msg)";
