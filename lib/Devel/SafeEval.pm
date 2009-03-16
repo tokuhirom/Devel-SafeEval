@@ -113,6 +113,10 @@ THIS MODULE IS NOT A SAFETY
     - mask op code
     - trash DynaLoader::dl_install_xsub
 
+=head1 TODO
+
+    close all files
+
 =head1 AUTHOR
 
 Tokuhiro Matsuno E<lt>tokuhirom ah! gmail.comE<gt>

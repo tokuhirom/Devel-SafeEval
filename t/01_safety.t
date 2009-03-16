@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Devel::SafeEval;
 use English;
 
@@ -62,9 +62,19 @@ like(
     Devel::SafeEval->run(
         timeout => 0.01,
         uid     => $UID,
-        code    => '',
+        code    => '1 while 1',
     ),
     qr{timeout},
     'timeout'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        uid     => $UID,
+        code    => 'open F, "|-"',
+    ),
+    qr{'open' trapped by operation mask},
+    'open F, "|-"'
 );
 
