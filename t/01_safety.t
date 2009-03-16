@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 10;
 use Devel::SafeEval;
 
 like(
@@ -76,4 +76,13 @@ like(
     ),
     qr{'opendir' trapped by operation mask},
     'opendir'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => 'dump()',
+    ),
+    qr{'dump' trapped by operation mask},
+    'dump'
 );
