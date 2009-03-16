@@ -59,7 +59,15 @@ sub _body {
     local $@;
     my $stdout = '';
     eval {
-        my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open,:sys_db,:filesys_open,:filesys_read,:others,dofile,bind,connect,listen,accept,shutdown,gsockopt,getsockname,flock,ioctl,reset,dbstate,:dangerous}, '-MDevel::SafeEval::Defender');
+        my $deny = join ',', qw{
+            stat lstat readlink
+            ftatime ftblk ftchr ftctime ftdir fteexec fteowned
+            fteread ftewrite ftfile ftis ftlink ftmtime ftpipe
+            ftrexec ftrowned ftrread ftsgid ftsize ftsock ftsuid
+            fttty ftzero ftrwrite ftsvtx
+            fttext ftbinary
+        };
+        my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open,:sys_db,:filesys_open,:others,dofile,bind,connect,listen,accept,shutdown,gsockopt,getsockname,flock,ioctl,reset,dbstate,:dangerous,} . $deny, '-MDevel::SafeEval::Defender');
         local $SIG{ALRM} = sub { die "timeout" };
         alarm $args{timeout};
         $pid = open3(my ($wfh, $rfh, $efh), $args{perl}, '-Mblib', '-MDevel::SafeEval::Defender', @args, @{$args{arguments}});
