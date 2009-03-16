@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 6;
 use Devel::SafeEval;
 use English;
 
@@ -53,5 +53,15 @@ like(
         code    => 'print STDERR "hoge";',
     ),
     qr{hoge}
+);
+
+like(
+    Devel::SafeEval->run(
+        root    => '/',
+        timeout => 1,
+        uid     => $UID,
+        code    => 'DynaLoader::dl_install_xsub("hoge")',
+    ),
+    qr{do not load xs}
 );
 

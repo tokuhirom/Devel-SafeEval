@@ -61,43 +61,11 @@ sub _body {
     my $pid = fork();
     if ($pid == 0) {
         # child
-
-        close STDIN;
-        close STDOUT;
-        close STDERR;
         close $pout;
-
-        open STDOUT, '>&=' . fileno($cout);
-        open STDERR, '>&=' . fileno($cout);
-
-        select STDERR; $| = 1;
-        select STDOUT; $| = 1;
-
-        POSIX::setuid($args{uid});
-
-        XSLoader::load('Sys::Protect', $SYS_PROTECT_VERSION);
-        Sys::Protect->import();
-
-        no warnings 'redefine';
-        *DynaLoader::dl_install_xsub = sub {
-            die "do not load xs";
+        eval {
+            $class->_run_child($cout, %args);
         };
-
-        Internals::SvREADONLY(@INC, 1);
-
-        chdir($args{'root'});
-        chroot($args{'root'});
-
-        setrlimit(RLIMIT_AS, 10*1024*1024, 10*1024*1024);
-        setrlimit(RLIMIT_FSIZE, 0, 0);
-        setrlimit(RLIMIT_MSGQUEUE, 0, 0);
-        setrlimit(RLIMIT_NOFILE, $args{rlimit_nofile}, $args{rlimit_nofile});
-
-        %ENV = ();
-
-        eval $args{code}; ## no critic
-        print STDERR $@ if $@;
-        exit(0);
+        print $@ if $@;
     } elsif (! defined $pid) {
         die "cannot fork: $!";
     } else {
@@ -111,6 +79,46 @@ sub _body {
         my $out = join '', <$pout>;
         return $out;
     }
+}
+
+sub _run_child {
+    my ($class, $cout, %args) = @_;
+
+    close STDIN;
+    close STDOUT;
+    close STDERR;
+
+    open STDOUT, '>&=' . fileno($cout);
+    open STDERR, '>&=' . fileno($cout);
+
+    select STDERR; $| = 1;
+    select STDOUT; $| = 1;
+
+    POSIX::setuid($args{uid});
+
+    XSLoader::load('Sys::Protect', $SYS_PROTECT_VERSION);
+    Sys::Protect->import();
+
+    no warnings 'redefine';
+    *DynaLoader::dl_install_xsub = sub {
+        die "do not load xs";
+    };
+
+    Internals::SvREADONLY(@INC, 1);
+
+    chdir($args{'root'});
+    chroot($args{'root'});
+
+    setrlimit(RLIMIT_AS, 10*1024*1024, 10*1024*1024);
+    setrlimit(RLIMIT_FSIZE, 0, 0);
+    setrlimit(RLIMIT_MSGQUEUE, 0, 0);
+    setrlimit(RLIMIT_NOFILE, $args{rlimit_nofile}, $args{rlimit_nofile});
+
+    %ENV = ();
+
+    eval $args{code}; ## no critic
+    print STDERR $@ if $@;
+    exit(0);
 }
 
 1;
