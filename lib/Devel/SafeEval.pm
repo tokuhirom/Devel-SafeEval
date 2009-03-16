@@ -9,11 +9,10 @@ use Params::Validate ':all';
 use IPC::Open3;
 use Symbol;
 use XSLoader;
-use Proc::Wait3;
 use Time::HiRes 'alarm';
 use Carp ();
-
-my $SYS_PROTECT_VERSION = 0.02;
+use DynaLoader;
+require Devel::SafeEval::Defender;
 
 XSLoader::load(__PACKAGE__, $VERSION);
 
@@ -43,16 +42,12 @@ sub run {
         }
     );
 
+    local $@;
     my $ret = eval {
-        local $SIG{ALRM} = sub { die 'timeout' };
-        alarm $args{timeout};
-        my ($pid, $ret) = $class->_body(%args);
-        alarm 0;
-        kill 9, $pid;
-        $ret;
+        $class->_body(%args);
     };
-    if ($@) {
-        return $@;
+    if (my $e = $@) {
+        return $e;
     } else {
         return $ret;
     }
@@ -61,71 +56,27 @@ sub run {
 sub _body {
     my ($class, %args) = @_;
 
-    my ($cout, $pout) = (gensym(), gensym());
-    pipe($pout, $cout) or die $!;
-
-    my $pid = fork();
-    if ($pid == 0) {
-        # child
-        close $pout;
-        eval {
-            $class->_run_child($cout, %args);
-        };
-        print $@ if $@;
-        exit;
-    } elsif (! defined $pid) {
-        die "cannot fork: $!";
-    } else {
-        close $cout;
-
+    my $pid = -1;
+    local $@;
+    my $stdout = '';
+    eval {
+        my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open}, '-MDevel::SafeEval::Defender');
+        local $SIG{ALRM} = sub { die "timeout" };
+        alarm $args{timeout};
+        $pid = open3(my ($wfh, $rfh, $efh), $args{perl}, '-Mblib', @args);
         local $SIG{CHLD} = sub { waitpid($pid, 0) };
-        wait3(1);
-        my $out = join '', <$pout>;
-        return ($pid, $out);
-    }
-}
-
-sub _run_child {
-    my ($class, $cout, %args) = @_;
-
-    close STDIN;
-    close STDOUT;
-    close STDERR;
-
-    open STDOUT, '>&=' . fileno($cout);
-    open STDERR, '>&=' . fileno($cout);
-
-    select STDERR; $| = 1;
-    select STDOUT; $| = 1;
-
-    POSIX::setuid($args{uid}) or die $!;
-
-    XSLoader::load('Sys::Protect', $SYS_PROTECT_VERSION);
-    Sys::Protect->import();
-
-    no warnings 'redefine';
-    *DynaLoader::dl_install_xsub = sub {
-        Carp::croak "do not load xs";
-        die 'you break a Carp::croak?';
+        print $wfh $args{code} and close $wfh;
+        local $/;
+        $stdout = <$rfh>;
+        close $rfh;
+        alarm 0;
     };
-
-    Internals::SvREADONLY(@INC, 1);
-
-    if (exists $args{'root'}) {
-        chdir($args{'root'}) or die $!;
-        chroot($args{'root'}) or die $!;
+    kill 9 => $pid if $pid > 0;
+    if (my $e = $@) {
+        return $e;
+    } else {
+        return $stdout;
     }
-
-    setrlimit(RLIMIT_AS, 10*1024*1024, 10*1024*1024);
-    setrlimit(RLIMIT_FSIZE, 0, 0);
-    setrlimit(RLIMIT_MSGQUEUE, 0, 0);
-    setrlimit(RLIMIT_NOFILE, $args{rlimit_nofile}, $args{rlimit_nofile});
-
-    %ENV = ();
-
-    eval $args{code}; ## no critic
-    print STDERR $@ if $@;
-    exit(0);
 }
 
 1;
@@ -148,6 +99,10 @@ Devel::SafeEval -
 =head1 DESCRIPTION
 
 Devel::SafeEval is
+
+=head1 MEMO
+
+call chroot(2) before use this module.
 
 =head1 CAUTION
 

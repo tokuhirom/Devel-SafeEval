@@ -10,7 +10,7 @@ like(
         uid     => $UID,
         code    => 'fork()',
     ),
-    qr{Opcode denied: fork}
+    qr{'fork' trapped by operation mask}
 );
 
 is(
@@ -62,8 +62,9 @@ like(
     Devel::SafeEval->run(
         timeout => 0.01,
         uid     => $UID,
-        code    => '1 while 1',
+        code    => '',
     ),
-    qr{timeout}
+    qr{timeout},
+    'timeout'
 );
 

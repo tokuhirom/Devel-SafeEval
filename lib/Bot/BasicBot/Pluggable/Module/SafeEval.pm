@@ -13,10 +13,11 @@ sub told {
         my $code = $1;
         print "evaluating $code\n";
         my $opts = $self->{Param}->[0];
-        Devel::SafeEval->run(
+        my $res = Devel::SafeEval->run(
             %$opts,
             code => $code,
         );
+        substr($res, 0, 100);
     }
 }
 
