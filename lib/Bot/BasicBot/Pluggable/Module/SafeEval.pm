@@ -41,7 +41,7 @@ sub told {
             keep_source_where => undef,
             histfile          => undef,
         };
-        CPAN::FirstTime::init($cpanpm, %args);
+        CPAN::FirstTime::init($cpanpm, ());
     } elsif ($body =~ /^!cpan\s+([a-zA-Z:_-]+)$/) {
         my $mod = $1;
         if ($mod =~ $badre) {
