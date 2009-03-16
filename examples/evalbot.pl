@@ -3,9 +3,8 @@ use strict;
 use warnings;
 use POE;
 use POE::Component::IRC;
-use lib 'lib';
 use local::lib '/home/dankogai/locallib/';
-use blib;
+use lib 'lib';
 use Devel::SafeEval;
 use Bot::BasicBot::Pluggable;
 
