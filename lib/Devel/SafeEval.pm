@@ -61,7 +61,7 @@ sub _body {
     eval {
         my $deny = join ',', qw{
             stat lstat readlink
-            ftatime ftblk ftchr ftctime ftdir fteexec fteowned
+            ftatime ftblk ftchr ftctime fteexec fteowned
             fteread ftewrite ftfile ftis ftlink ftmtime ftpipe
             ftrexec ftrowned ftrread ftsgid ftsize ftsock ftsuid
             fttty ftzero ftrwrite ftsvtx
