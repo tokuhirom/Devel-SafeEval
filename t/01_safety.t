@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 13;
+use Test::More tests => 14;
 use Devel::SafeEval;
 
 like(
@@ -112,6 +112,15 @@ like(
         code    => 'DynaLoader::boot_DynaLoader()',
     ),
     qr{you should not call},
+    'DynaLoader::boot_DynaLoader'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => 'use Encode; print encode("iso-2022-jp", "DAN")',
+    ),
+    qr{DAN},
     'DynaLoader::boot_DynaLoader'
 );
 
