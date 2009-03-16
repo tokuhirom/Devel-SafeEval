@@ -4,6 +4,8 @@ use warnings;
 use base qw(Bot::BasicBot::Pluggable::Module);
 use Devel::SafeEval;
 
+my $badre = qr/^(?:Devel::|B::|Acme::|IO::|IPC::|File::)/;
+
 sub told {
     my ($self, $msg) = @_;
     my $body = $msg->{body};
@@ -28,8 +30,8 @@ sub told {
         "reloaded";
     } elsif ($body =~ /^!cpan\s+(\S+)$/) {
         my $mod = $1;
-        if ($mod =~ /^(?:Devel::|B::|Acme::)/) {
-            "I hate Devel::*, B::*, Acme::* packages";
+        if ($mod =~ $badre) {
+            "I hate $badre";
         } else {
             require CPAN;
             CPAN::install($mod);
