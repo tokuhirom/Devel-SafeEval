@@ -4,7 +4,7 @@ use warnings;
 use File::Spec;
 use FindBin;
 use local::lib '/home/dankogai/locallib/';
-use lib File::Spec->catfile($FdinBin::Bin, 'lib');
+use lib File::Spec->catfile($FindBin::Bin, 'lib');
 use POE;
 use POE::Component::IRC;
 use Devel::SafeEval;
