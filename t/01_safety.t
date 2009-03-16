@@ -104,3 +104,13 @@ like(
     qr{you should not call},
     'DynaLoader::boot_DynaLoader'
 );
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => 'DynaLoader::boot_DynaLoader()',
+    ),
+    qr{you should not call},
+    'DynaLoader::boot_DynaLoader'
+);
+

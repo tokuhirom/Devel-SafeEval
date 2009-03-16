@@ -15,15 +15,9 @@ my %channels = (
     '#tttoo' => ''
 );
 
-my @preload = (
-    'Moose'
-);
-
 my $uid = 1002;
 
 # -------------------------------------------------------------------------
-
-eval "use $_" for @preload;
 
 my $irc = Bot::BasicBot::Pluggable->new(
     server   => 'irc.freenode.org',
