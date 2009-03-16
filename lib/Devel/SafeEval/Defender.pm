@@ -4,6 +4,10 @@ use warnings;
 use Safe;
 
 my $SYS_PROTECT_VERSION = 0.02;
+my @TRUSTED;
+BEGIN {
+    @TRUSTED = qw(Moose.pm XSLoader.pm Encode.pm);
+};
 
 sub import {
     # XSLoader::load('Sys::Protect', $SYS_PROTECT_VERSION);
@@ -22,9 +26,8 @@ sub import {
         # use kazuho method
         # http://d.hatena.ne.jp/kazuhooku/20090316/1237205628
         no warnings qw(redefine);
-
         my %trusted =
-          map { $_ => 1 } qw(Moose.pm XSLoader.pm Encode.pm);
+          map { $_ => 1 } @TRUSTED;
 
         my $ix = \&DynaLoader::dl_install_xsub;
         my $fake = sub { die "no xs\n" };
