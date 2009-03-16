@@ -74,7 +74,7 @@ sub _body {
         alarm $args{timeout};
         print $tmp $args{code};
         $pid = open3( my ( $wfh, $rfh, $efh ),
-            $args{perl}, '-Mblib', '-MDevel::SafeEval::Defender', @{ $args{arguments} },
+            $args{perl}, '-Ilib', '-MDevel::SafeEval::Defender', @{ $args{arguments} },
             @args, $tmp->filename);
         local $SIG{CHLD} = sub { waitpid($pid, 0) };
         close $wfh;
