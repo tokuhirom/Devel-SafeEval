@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 11;
+use Test::More tests => 12;
 use Devel::SafeEval;
 
 like(
@@ -94,4 +94,13 @@ like(
     ),
     qr{do not load xs},
     'Devel::Peek is dangerous...(that can detect address)'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => 'DynaLoader::boot_DynaLoader()',
+    ),
+    qr{you should not call},
+    'DynaLoader::boot_DynaLoader'
 );
