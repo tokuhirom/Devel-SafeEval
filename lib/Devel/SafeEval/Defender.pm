@@ -15,12 +15,40 @@ sub import {
         Carp::croak 'you should not call boot_DynaLoader';
         die 'you break a Carp::croak?';
     };
-    *DynaLoader::dl_install_xsub = sub {
-        Carp::croak "do not load xs";
-        die 'you break a Carp::croak?';
-    };
 
     %ENV = (PATH => '', PERL5LIB => $ENV{PERL5LIB});
+
+    {
+        # use kazuho method
+        # http://d.hatena.ne.jp/kazuhooku/20090316/1237205628
+        no warnings qw(redefine);
+
+        my %trusted =
+          map { $_ => 1 } qw(Moose.pm XSLoader.pm Encode.pm);
+
+        my $ix = \&DynaLoader::dl_install_xsub;
+        my $fake = sub { die "no xs\n" };
+        *DynaLoader::dl_install_xsub = $fake;
+        my @trueINC;
+
+        unshift @INC, sub {
+            shift;
+            my $module = "$_[0]"; # barrier for overload-stringify attack
+            die "\@INC has been modified\n"
+              unless "@INC" eq "@trueINC";
+            return undef ## no critic
+              unless $trusted{$module} && \&DynaLoader::dl_install_xsub != $ix;
+            eval {
+                *DynaLoader::dl_install_xsub = $ix;
+                require $module;
+            };
+            *DynaLoader::dl_install_xsub = $fake;
+            die $@ if $@;
+            return 1;
+        };
+
+        @trueINC = @INC;
+    }
 }
 
 1;

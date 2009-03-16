@@ -14,17 +14,17 @@ like(
 is(
     Devel::SafeEval->run(
         timeout => 1,
-        code    => 'print join ",", keys %ENV',
+        code    => 'print join ",", sort keys %ENV',
     ),
-    '',
+    'PATH,PERL5LIB',
 );
 
 like(
     Devel::SafeEval->run(
         timeout => 1,
-        code    => '%INC=(); use Encode;',
+        code    => '%INC=(); use Encode; print "OK"',
     ),
-    qr{do not load xs}
+    qr{OK}
 );
 
 like(
@@ -48,7 +48,8 @@ like(
         timeout => 1,
         code    => 'DynaLoader::dl_install_xsub("hoge")',
     ),
-    qr{do not load xs}
+    qr{no xs},
+    'dl_install_xsub'
 );
 
 like(
@@ -92,7 +93,7 @@ like(
         timeout => 1,
         code    => 'use Devel::Peek',
     ),
-    qr{do not load xs},
+    qr{no xs},
     'Devel::Peek is dangerous...(that can detect address)'
 );
 
