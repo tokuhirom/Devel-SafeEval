@@ -5,7 +5,7 @@ use warnings;
 my $SYS_PROTECT_VERSION = 0.02;
 my @TRUSTED;
 BEGIN {
-    @TRUSTED = qw(Moose.pm XSLoader.pm Encode.pm);
+    @TRUSTED = qw(Moose.pm XSLoader.pm Encode.pm Opcode.pm);
 };
 
 sub import {
