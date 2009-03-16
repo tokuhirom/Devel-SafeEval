@@ -9,6 +9,9 @@ use Params::Validate ':all';
 use IPC::Open3;
 use Symbol;
 use XSLoader;
+use Proc::Wait3;
+use Time::HiRes 'alarm';
+use Carp ();
 
 my $SYS_PROTECT_VERSION = 0.02;
 
@@ -27,7 +30,7 @@ sub run {
     my $class = shift;
     my %args = validate(
         @_ => {
-            root    => 1,
+            root    => 0,
             code    => 1,
             uid     => 1,
             timeout => 1,
@@ -76,6 +79,7 @@ sub _body {
         close $cout;
 
         local $SIG{CHLD} = sub { waitpid($pid, 0) };
+        wait3(1);
         my $out = join '', <$pout>;
         return ($pid, $out);
     }
@@ -94,20 +98,23 @@ sub _run_child {
     select STDERR; $| = 1;
     select STDOUT; $| = 1;
 
-    POSIX::setuid($args{uid});
+    POSIX::setuid($args{uid}) or die $!;
 
     XSLoader::load('Sys::Protect', $SYS_PROTECT_VERSION);
     Sys::Protect->import();
 
     no warnings 'redefine';
     *DynaLoader::dl_install_xsub = sub {
-        die "do not load xs";
+        Carp::croak "do not load xs";
+        die 'you break a Carp::croak?';
     };
 
     Internals::SvREADONLY(@INC, 1);
 
-    chdir($args{'root'});
-    chroot($args{'root'});
+    if (exists $args{'root'}) {
+        chdir($args{'root'}) or die $!;
+        chroot($args{'root'}) or die $!;
+    }
 
     setrlimit(RLIMIT_AS, 10*1024*1024, 10*1024*1024);
     setrlimit(RLIMIT_FSIZE, 0, 0);
@@ -145,6 +152,11 @@ Devel::SafeEval is
 =head1 CAUTION
 
 THIS MODULE IS NOT A SAFETY
+
+=head1 SECURITY
+
+    - mask op code
+    - trash DynaLoader::dl_install_xsub
 
 =head1 AUTHOR
 

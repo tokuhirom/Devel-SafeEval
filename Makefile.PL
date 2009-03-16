@@ -2,6 +2,8 @@ use inc::Module::Install;
 name 'Devel-SafeEval';
 all_from 'lib/Devel/SafeEval.pm';
 
+requires 'Proc::Wait3';
+
 can_cc or die "This module requires a C compiler";
 makemaker_args(
     OBJECT => '$(O_FILES)',

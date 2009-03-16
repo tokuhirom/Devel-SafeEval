@@ -10,3 +10,4 @@ t_moose_t/
 *.o
 *.sqlite
 *.bs
+*.old
