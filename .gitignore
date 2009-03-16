@@ -8,3 +8,5 @@ t_moose_t/
 *.sw[po]
 *.c
 *.o
+*.sqlite
+*.bs
