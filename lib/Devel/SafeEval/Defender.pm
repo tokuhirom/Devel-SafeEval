@@ -58,7 +58,12 @@ sub import {
             };
             *DynaLoader::dl_install_xsub = $fake;
             die $@ if $@;
-            return 1;
+
+            pipe my $rfh, my $wfh
+            or die $!;
+            print $wfh 1;
+            close $wfh;
+            $rfh;
         };
 
         @trueINC = @INC;
