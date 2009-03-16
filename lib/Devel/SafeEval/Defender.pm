@@ -6,18 +6,17 @@ use Carp ();
 my $SYS_PROTECT_VERSION = 0.02;
 my @TRUSTED;
 BEGIN {
-    @TRUSTED = qw(
-        Moose.pm XSLoader.pm Opcode.pm
+    @TRUSTED = (
+        qw(XSLoader.pm Opcode.pm), # core modules
 
-        Encode.pm
-        Encode/Byte.pm
-        Encode/CN.pm
-        Encode/EBCDIC.pm
-        Encode/JP.pm
-        Encode/KR.pm
-        Encode/Symbol.pm
-        Encode/TW.pm
-        Encode/Unicode.pm
+        qw(Moose.pm Class/MOP.pm), # Moose related stuff
+
+        # Encode
+        qw(
+            Encode.pm Encode/Byte.pm Encode/CN.pm Encode/EBCDIC.pm
+            Encode/JP.pm Encode/KR.pm Encode/Symbol.pm Encode/TW.pm
+            Encode/Unicode.pm
+        ),
     );
 };
 
