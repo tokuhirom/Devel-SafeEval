@@ -13,6 +13,7 @@ sub told {
         my $code = $1;
         print "evaluating $code\n";
         my $opts = $self->{Param}->[0];
+        delete $opts->{arguments};
         my $res = Devel::SafeEval->run(
             %$opts,
             code => $code,
