@@ -34,7 +34,6 @@ like(
     qr{do not load xs}
 );
 
-
 like(
     Devel::SafeEval->run(
         root    => '/',
