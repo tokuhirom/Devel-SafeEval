@@ -12,7 +12,7 @@ use Carp ();
 use DynaLoader;
 require Devel::SafeEval::Defender;
 
-XSLoader::load(__PACKAGE__, $VERSION);
+# XSLoader::load(__PACKAGE__, $VERSION);
 
 # linux :)
 use constant {
