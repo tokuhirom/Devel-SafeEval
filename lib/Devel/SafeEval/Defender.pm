@@ -11,6 +11,8 @@ BEGIN {
 
         qw(Moose.pm Class/MOP.pm), # Moose related stuff
 
+        qw(threads.pm), # ithreads
+
         # Encode
         qw(
             Encode.pm Encode/Byte.pm Encode/CN.pm Encode/EBCDIC.pm

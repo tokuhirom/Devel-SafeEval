@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 1;
+use Test::More tests => 2;
 use Devel::SafeEval;
 
 like(
@@ -10,3 +10,12 @@ like(
     ),
     qr{OK}
 );
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => 'use threads; print "OK"',
+    ),
+    qr{OK}
+);
+
