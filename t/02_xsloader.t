@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 5;
 use Devel::SafeEval;
 
 like(
@@ -28,6 +28,14 @@ unlike(
             use Encode;
             print "OK";
         },
+    ),
+    qr{Usage: DynaLoader::dl_install_xsub}
+);
+
+unlike(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => 'use less do { DynaLoader::dl_install_xsub }',
     ),
     qr{Usage: DynaLoader::dl_install_xsub}
 );
