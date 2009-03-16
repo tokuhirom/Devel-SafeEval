@@ -53,7 +53,7 @@ sub import {
             return undef ## no critic
               unless $trusted{$module} && \&DynaLoader::dl_install_xsub != $ix;
             eval {
-                *DynaLoader::dl_install_xsub = $ix;
+                local *DynaLoader::dl_install_xsub = $ix;
                 require $module;
             };
             *DynaLoader::dl_install_xsub = $fake;
