@@ -12,6 +12,10 @@ sub import {
 
     no warnings 'redefine';
     require DynaLoader;
+    *DynaLoader::boot_DynaLoader = sub {
+        Carp::croak 'you should not call boot_DynaLoader';
+        die 'you break a Carp::croak?';
+    };
     *DynaLoader::dl_install_xsub = sub {
         Carp::croak "do not load xs";
         die 'you break a Carp::croak?';
