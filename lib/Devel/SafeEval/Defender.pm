@@ -1,7 +1,6 @@
 package Devel::SafeEval::Defender;
 use strict;
 use warnings;
-use Safe;
 
 my $SYS_PROTECT_VERSION = 0.02;
 my @TRUSTED;
