@@ -34,7 +34,7 @@ sub told {
             "I hate $badre";
         } else {
             require CPAN;
-            CPAN::install($mod);
+            CPAN::Shell->install($mod);
             "$mod installed";
         }
     }
