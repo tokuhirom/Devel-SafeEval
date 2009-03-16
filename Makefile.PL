@@ -2,6 +2,10 @@ use inc::Module::Install;
 name 'Devel-SafeEval';
 all_from 'lib/Devel/SafeEval.pm';
 
+requires 'Sys::Protect';
+requires 'IPC::Open3';
+requires 'BSD::Resource';
+requires 'Params::Validate';
 can_cc or die "This module requires a C compiler";
 makemaker_args(
     OBJECT => '$(O_FILES)',
