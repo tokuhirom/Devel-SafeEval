@@ -33,7 +33,11 @@ sub told {
         if ($mod =~ $badre) {
             "I hate $badre";
         } else {
-            join '', `PERL_AUTOINSTALL="--defaultdeps" $^X -MCPAN -Mlocal::lib=/home/dankogai/locallib/ -e 'CPAN::install("$mod")'`;
+            require CPAN;
+            require Module::Install;
+            local::lib->import('/home/dankogai/locallib/');
+            $ENV{PERL_AUTOINSTALL} = '--defaultdeps';
+            CPAN::install($mod);
         }
     } elsif ($body =~ /^!modules\s+(\S+)$/) {
         my $dir = $1;
