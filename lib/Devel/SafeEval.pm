@@ -67,10 +67,12 @@ sub _body {
             fttty ftzero ftrwrite ftsvtx
             fttext ftbinary
         };
-        my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open,:sys_db,:filesys_open,:others,dofile,bind,connect,listen,accept,shutdown,gsockopt,getsockname,flock,ioctl,reset,dbstate,:dangerous,} . $deny, '-MDevel::SafeEval::Defender');
+        my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open,:sys_db,:filesys_open,:others,dofile,bind,connect,listen,accept,shutdown,gsockopt,getsockname,flock,ioctl,reset,dbstate,:dangerous,} . $deny);
         local $SIG{ALRM} = sub { die "timeout" };
         alarm $args{timeout};
-        $pid = open3(my ($wfh, $rfh, $efh), $args{perl}, '-Mblib', '-MDevel::SafeEval::Defender', @args, @{$args{arguments}});
+        $pid = open3( my ( $wfh, $rfh, $efh ),
+            $args{perl}, '-Mblib', '-MDevel::SafeEval::Defender', @args,
+            @{ $args{arguments} } );
         local $SIG{CHLD} = sub { waitpid($pid, 0) };
         print $wfh $args{code} and close $wfh;
         local $/;
