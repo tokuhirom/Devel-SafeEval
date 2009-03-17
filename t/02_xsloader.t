@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 8;
+use Test::More tests => 9;
 use Devel::SafeEval;
 
 like(
@@ -77,4 +77,13 @@ like(
     ),
     qr{do not modify \@INC},
     'disallow modify @INC'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => 'BEGIN{ *XSLoader::load = sub { }} use Math::BigInt::FastCalc; print "OK"',
+    ),
+    qr{you changed DynaLoader or XSLoader},
+    'disallow modify XSLoader/DynaLoader'
 );
