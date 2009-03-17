@@ -8,7 +8,7 @@ use Digest::MD5 ();
 my @TRUSTED;
 BEGIN {
     @TRUSTED = (
-        qw(XSLoader List::Util Opcode Math::BigInt::FastCalc Time::HiRes), # core modules
+        qw(XSLoader List::Util Opcode Math::BigInt::FastCalc Time::HiRes Data::Dumper), # core modules
 
         qw(Moose Class::MOP), # Moose related stuff
 
