@@ -39,17 +39,15 @@ sub import {
         # use kazuho method
         # http://d.hatena.ne.jp/kazuhooku/20090316/1237205628
 
-        my $ix = \&DynaLoader::dl_install_xsub;
-        my $dl_find_symbol = \&DynaLoader::dl_find_symbol;
-        my $dl_undef_symbols = \&DynaLoader::dl_undef_symbols;
-        my $dl_load_file = \&DynaLoader::dl_load_file;
-        my $dl_findfile = \&DynaLoader::dl_findfile;
-        my $dl_error = \&DynaLoader::dl_error;
+        my $bootstrap_inherit = \&DynaLoader::bootstrap_inherit;
+        my $dl_error          = \&DynaLoader::dl_error;
+        my $dl_find_symbol    = \&DynaLoader::dl_find_symbol;
+        my $dl_findfile       = \&DynaLoader::dl_findfile;
+        my $dl_install_xsub   = \&DynaLoader::dl_install_xsub;
+        my $dl_load_file      = \&DynaLoader::dl_load_file;
+        my $dl_undef_symbols  = \&DynaLoader::dl_undef_symbols;
 
         my %trusted = map { $_ => 1 } @TRUSTED;
-        my $xsloader_path = $INC{'XSLoader.pm'};
-        my $dynaloader_path = $INC{'DynaLoader.pm'};
-        my $bootstrap_inherit = DynaLoader->can('bootstrap_inherit');
         my $TRUE_INC = join "\0", @INC;
         my $gen_codehash = sub {
             join("\0", map { refaddr( $_ ) } @_);
@@ -66,10 +64,10 @@ sub import {
             push @code, *{"XSLoader::load"}{CODE};
             @code;
         };
-        my $croak = Carp->can('croak');
-        my $carp = Carp->can('carp');
-        my $confess = Carp->can('confess');
         no strict 'refs';
+        my $croak   = *{"Carp::croak"}{CODE};
+        my $carp    = *{"Carp::carp"}{CODE};
+        my $confess = *{"Carp::confess"}{CODE};
         my @code; # predefine
         local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
@@ -165,7 +163,7 @@ sub import {
             push( @DynaLoader::dl_modules, $module );    # record loaded module
 
           boot:
-            my $xs = $ix->( "${module}::bootstrap", $boot_symbol_ref,
+            my $xs = $dl_install_xsub->( "${module}::bootstrap", $boot_symbol_ref,
                 $file );
 
             # See comment block above
