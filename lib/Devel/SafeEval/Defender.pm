@@ -5,11 +5,10 @@ use Carp ();
 use Scalar::Util 'refaddr';
 use Digest::MD5 ();
 
-my $SYS_PROTECT_VERSION = 0.02;
 my @TRUSTED;
 BEGIN {
     @TRUSTED = (
-        qw(XSLoader List::Util Opcode Math::BigInt::FastCalc), # core modules
+        qw(XSLoader List::Util Opcode Math::BigInt::FastCalc Time::HiRes), # core modules
 
         qw(Moose Class::MOP), # Moose related stuff
 
@@ -25,9 +24,6 @@ BEGIN {
 };
 
 sub import {
-    # XSLoader::load('Sys::Protect', $SYS_PROTECT_VERSION);
-    # Sys::Protect->import();
-
     no warnings 'redefine';
     require DynaLoader;
     require XSLoader;
