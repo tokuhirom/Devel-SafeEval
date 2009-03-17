@@ -26,6 +26,7 @@ BEGIN {
 sub import {
     no warnings 'redefine';
     require DynaLoader;
+    require Carp;
     require XSLoader;
     *DynaLoader::boot_DynaLoader = sub {
         Carp::croak 'you should not call boot_DynaLoader twice';
@@ -49,7 +50,6 @@ sub import {
             qr{^(?:$inc)\/*(?:$t)$};
         };
         my $orig_xsloader_load = \&XSLoader::load;
-        my $orig_dynaloader_bootstrap = \&DynaLoader::bootstrap;
         my $xsloader_path = $INC{'XSLoader.pm'};
         my $dynaloader_path = $INC{'DynaLoader.pm'};
         my $TRUE_INC = join "\0", @INC;
@@ -66,38 +66,107 @@ sub import {
                 keys %{"DynaLoader::"}
             );
             push @code, XSLoader->can('load');
+            push @code, Carp->can('croak');
             @code;
         };
+        my $croak = Carp->can('croak');
         no strict 'refs';
         my $key = Digest::MD5::md5_hex(rand() . time() . 'dan the api');
         my @code; # predefine
         local $^P; # defence from debugger
-        *XSLoader::load = sub {
-            my ($module, ) = @_;
+        my $loader = sub {
+            my ( $module, @args ) = @_;
+            unless ($module) {
+                Carp::confess("Usage: DynaLoader::bootstrap(module)");
+            }
             die "no xs(${module} is not trusted)" unless $trusted{$module};
-            local *{__PACKAGE__ . "::key"} = sub { $key };
-            $orig_xsloader_load->(@_);
-        };
-        *DynaLoader::bootstrap = sub {
-            my ($module, ) = @_;
-            die "no xs(${module} is not trusted)" unless $trusted{$module};
-            local *{__PACKAGE__ . "::key"} = sub { $key };
-            $orig_dynaloader_bootstrap->(@_);
-        };
-        *DynaLoader::dl_install_xsub = sub {
-            unless (__PACKAGE__->can('key')) {
-                die "no xs";
-            }
-            unless (__PACKAGE__->key() eq $key) {
-                die "are you cracker?";
-            }
-            if ($TRUE_INC ne join("\0", @INC)) {
-                die "do not modify \@INC";
-            }
-            if ($gen_codehash->(@code) ne $gen_codehash->($loader_code->())) {
+            if ( $gen_codehash->(@code) ne $gen_codehash->( $loader_code->() ) )
+            {
                 die "you changed DynaLoader or XSLoader?";
             }
-            goto $ix;
+            if ( $TRUE_INC ne join( "\0", @INC ) ) {
+                die "do not modify \@INC";
+            }
+
+            local *{ __PACKAGE__ . "::key" } = sub { $key };
+
+            die q{XSLoader::load('Your::Module', $Your::Module::VERSION)}
+              unless @_;
+
+            # work with static linking too
+            my $b = "$module\::bootstrap";
+            goto &$b if defined &$b;
+
+            goto retry unless $module and defined &DynaLoader::dl_load_file;
+
+            my @modparts = split( /::/, $module );
+            my $modfname = $modparts[-1];
+
+            my $modpname   = join( '/', @modparts );
+            my $modlibname = ( caller() )[1];
+            my $c          = @modparts;
+            $modlibname =~ s,[\\/][^\\/]+$,, while $c--;    # Q&D basename
+            my $file = "$modlibname/auto/$modpname/$modfname.so";
+
+           #   print STDERR "XSLoader::load for $module ($file)\n" if $dl_debug;
+
+            my $bs = $file;
+            $bs =~ s/(\.\w+)?(;\d*)?$/\.bs/; # look for .bs 'beside' the library
+
+            goto retry if not -f $file or -s $bs;
+
+            my $bootname = "boot_$module";
+            $bootname =~ s/\W/_/g;
+            @DynaLoader::dl_require_symbols = ($bootname);
+
+            my $boot_symbol_ref;
+
+            # Many dynamic extension loading problems will appear to come from
+            # this section of code: XYZ failed at line 123 of DynaLoader.pm.
+            # Often these errors are actually occurring in the initialisation
+            # C code of the extension XS file. Perl reports the error as being
+            # in this perl code simply because this was the last perl code
+            # it executed.
+
+            my $libref = DynaLoader::dl_load_file( $file, 0 ) or do {
+                require Carp;
+                $croak->(
+                    "Can't load '$file' for module $module: " . DynaLoader::dl_error() );
+            };
+            push( @DynaLoader::dl_librefs, $libref );    # record loaded object
+
+            my @unresolved = DynaLoader::dl_undef_symbols();
+            if (@unresolved) {
+                require Carp;
+                Carp::carp(
+"Undefined symbols present after loading $file: @unresolved\n"
+                );
+            }
+
+            $boot_symbol_ref = DynaLoader::dl_find_symbol( $libref, $bootname ) or do {
+                require Carp;
+                $croak->("Can't find '$bootname' symbol in $file\n");
+            };
+
+            push( @DynaLoader::dl_modules, $module );    # record loaded module
+
+          boot:
+            my $xs = $ix->( "${module}::bootstrap", $boot_symbol_ref,
+                $file );
+
+            # See comment block above
+            push( @DynaLoader::dl_shared_objects, $file ); # record files loaded
+            return &$xs(@_);
+
+          retry:
+            my $bootstrap_inherit = DynaLoader->can('bootstrap_inherit')
+              || XSLoader->can('bootstrap_inherit');
+            goto &$bootstrap_inherit;
+        };
+        *XSLoader::load = $loader;
+        *DynaLoader::bootstrap = $loader;
+        *DynaLoader::dl_install_xsub = sub {
+            die "do not call me";
         };
         @code = $loader_code->();
     }

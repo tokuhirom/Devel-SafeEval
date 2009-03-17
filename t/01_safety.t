@@ -40,7 +40,7 @@ like(
         timeout => 1,
         code    => 'DynaLoader::dl_install_xsub("hoge")',
     ),
-    qr{no xs},
+    qr{do not call me},
     'dl_install_xsub is dangerous'
 );
 

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 10;
 use Devel::SafeEval;
 
 like(
@@ -87,3 +87,22 @@ like(
     qr{you changed DynaLoader or XSLoader},
     'disallow modify XSLoader/DynaLoader'
 );
+
+unlike(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+        {
+            local *Encode::dl_load_flags = sub {
+                Carp::cluck();
+                my $key = Devel::SafeEval::Defender->can('key')->();
+                print "key='$key'";
+            };
+            DynaLoader::bootstrap('Encode');
+        }
+...
+    ),
+    qr{key='[a-zA-Z0-9]+'},
+    'yappo attack'
+);
+
