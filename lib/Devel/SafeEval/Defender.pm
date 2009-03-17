@@ -179,7 +179,7 @@ sub import {
         *DynaLoader::bootstrap_inherit = $fake;
         *DynaLoader::dl_error          = $fake;
         *DynaLoader::dl_find_symbol    = $fake;
-        *DynaLoader::dl_findfile      = $fake;
+        *DynaLoader::dl_findfile       = $fake;
         *DynaLoader::dl_install_xsub   = $fake;
         *DynaLoader::dl_load_file      = $fake;
         *DynaLoader::dl_undef_symbols  = $fake;
