@@ -40,18 +40,16 @@ sub import {
         # http://d.hatena.ne.jp/kazuhooku/20090316/1237205628
 
         my $ix = \&DynaLoader::dl_install_xsub;
+        my $dl_find_symbol = \&DynaLoader::dl_find_symbol;
+        my $dl_undef_symbols = \&DynaLoader::dl_undef_symbols;
+        my $dl_load_file = \&DynaLoader::dl_load_file;
+        my $dl_findfile = \&DynaLoader::dl_findfile;
+        my $dl_error = \&DynaLoader::dl_error;
 
         my %trusted = map { $_ => 1 } @TRUSTED;
-        my $trusted_re = do {
-            my $inc = join '|', map { quotemeta $_ } @INC;
-            my $t = join '|', map { quotemeta $_ }
-                map { s!::!/!g; "$_.pm" }
-                @TRUSTED;
-            qr{^(?:$inc)\/*(?:$t)$};
-        };
-        my $orig_xsloader_load = \&XSLoader::load;
         my $xsloader_path = $INC{'XSLoader.pm'};
         my $dynaloader_path = $INC{'DynaLoader.pm'};
+        my $bootstrap_inherit = DynaLoader->can('bootstrap_inherit');
         my $TRUE_INC = join "\0", @INC;
         my $gen_codehash = sub {
             join("\0", map { refaddr( $_ ) } @_);
@@ -79,7 +77,7 @@ sub import {
         my $loader = sub {
             my ( $module, ) = @_;
             $module = "$module"; # defence: overload hack
-            unless ($module) {
+            unless (defined $module) {
                 $confess->("Usage: DynaLoader::bootstrap(module)");
             }
             if (tied $module) {
@@ -94,14 +92,9 @@ sub import {
                 die "do not modify \@INC";
             }
 
-            die q{XSLoader::load('Your::Module', $Your::Module::VERSION)}
-              unless @_;
-
             # work with static linking too
             my $b = "$module\::bootstrap";
             goto &$b if defined &$b;
-
-            goto retry unless $module and defined &DynaLoader::dl_load_file;
 
             my @modparts = split( /::/, $module );
             my $modfname = $modparts[-1];
@@ -124,7 +117,7 @@ sub import {
             }
 
             # last resort, let dl_findfile have a go in all known locations
-            $file = DynaLoader::dl_findfile( map( "-L$_", @dirs, @INC ), $modfname )
+            $file = $dl_findfile->( map( "-L$_", @dirs, @INC ), $modfname )
               unless $file;
 
            #   print STDERR "XSLoader::load for $module ($file)\n" if $dl_debug;
@@ -147,20 +140,20 @@ sub import {
             # in this perl code simply because this was the last perl code
             # it executed.
 
-            my $libref = DynaLoader::dl_load_file( $file, 0 ) or do {
+            my $libref = $dl_load_file->( $file, 0 ) or do {
                 $croak->(
-                    "Can't load '$file' for module $module: " . DynaLoader::dl_error() );
+                    "Can't load '$file' for module $module: " . $dl_error->() );
             };
             push( @DynaLoader::dl_librefs, $libref );    # record loaded object
 
-            my @unresolved = DynaLoader::dl_undef_symbols();
+            my @unresolved = $dl_undef_symbols->();
             if (@unresolved) {
                 $carp->(
 "Undefined symbols present after loading $file: @unresolved\n"
                 );
             }
 
-            $boot_symbol_ref = DynaLoader::dl_find_symbol( $libref, $bootname ) or do {
+            $boot_symbol_ref = $dl_find_symbol->( $libref, $bootname ) or do {
                 $croak->("Can't find '$bootname' symbol in $file\n");
             };
 
@@ -175,15 +168,20 @@ sub import {
             return &$xs(@_);
 
           retry:
-            my $bootstrap_inherit = DynaLoader->can('bootstrap_inherit')
-              || XSLoader->can('bootstrap_inherit');
             goto &$bootstrap_inherit;
         };
         *XSLoader::load = $loader;
         *DynaLoader::bootstrap = $loader;
-        *DynaLoader::dl_install_xsub = sub {
-            die "do not call me";
-        };
+
+        my $fake = sub { die "do not call me" };
+        *DynaLoader::bootstrap_inherit = $fake;
+        *DynaLoader::dl_error          = $fake;
+        *DynaLoader::dl_find_symbol    = $fake;
+        *DynaLoader::dl_findfile      = $fake;
+        *DynaLoader::dl_install_xsub   = $fake;
+        *DynaLoader::dl_load_file      = $fake;
+        *DynaLoader::dl_undef_symbols  = $fake;
+
         @code = $loader_code->();
     }
 }
