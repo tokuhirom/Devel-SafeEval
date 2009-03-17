@@ -70,13 +70,15 @@ sub import {
             @code;
         };
         my $croak = Carp->can('croak');
+        my $carp = Carp->can('carp');
+        my $confess = Carp->can('confess');
         no strict 'refs';
         my @code; # predefine
         local $^P; # defence from debugger
         my $loader = sub {
             my ( $module, @args ) = @_;
             unless ($module) {
-                Carp::confess("Usage: DynaLoader::bootstrap(module)");
+                $confess->("Usage: DynaLoader::bootstrap(module)");
             }
             die "no xs(${module} is not trusted)" unless $trusted{$module};
             if ( $gen_codehash->(@code) ne $gen_codehash->( $loader_code->() ) )
@@ -126,7 +128,6 @@ sub import {
             # it executed.
 
             my $libref = DynaLoader::dl_load_file( $file, 0 ) or do {
-                require Carp;
                 $croak->(
                     "Can't load '$file' for module $module: " . DynaLoader::dl_error() );
             };
@@ -134,14 +135,12 @@ sub import {
 
             my @unresolved = DynaLoader::dl_undef_symbols();
             if (@unresolved) {
-                require Carp;
-                Carp::carp(
+                $carp->(
 "Undefined symbols present after loading $file: @unresolved\n"
                 );
             }
 
             $boot_symbol_ref = DynaLoader::dl_find_symbol( $libref, $bootname ) or do {
-                require Carp;
                 $croak->("Can't find '$bootname' symbol in $file\n");
             };
 
