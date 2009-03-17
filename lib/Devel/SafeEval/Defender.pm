@@ -8,17 +8,17 @@ my $SYS_PROTECT_VERSION = 0.02;
 my @TRUSTED;
 BEGIN {
     @TRUSTED = (
-        qw(XSLoader.pm Opcode.pm Math/BigInt/FastCalc.pm), # core modules
+        qw(XSLoader Opcode Math::BigInt::FastCalc), # core modules
 
-        qw(Moose.pm Class/MOP.pm), # Moose related stuff
+        qw(Moose Class::MOP), # Moose related stuff
 
-        qw(threads.pm), # ithreads
+        qw(threads), # ithreads
 
         # Encode
         qw(
-            Encode.pm Encode/Byte.pm Encode/CN.pm Encode/EBCDIC.pm
-            Encode/JP.pm Encode/KR.pm Encode/Symbol.pm Encode/TW.pm
-            Encode/Unicode.pm
+            Encode Encode::Byte Encode::CN Encode::EBCDIC
+            Encode::JP Encode::KR Encode::Symbol Encode::TW
+            Encode::Unicode
         ),
     );
 };
@@ -43,11 +43,15 @@ sub import {
 
         my $ix = \&DynaLoader::dl_install_xsub;
 
+        my %trusted = map { $_ => 1 } @TRUSTED;
         my $trusted_re = do {
             my $inc = join '|', map { quotemeta $_ } @INC;
-            my $t = join '|', map { quotemeta $_ } @TRUSTED;
+            my $t = join '|', map { quotemeta $_ }
+                map { s!::!/!g; "$_.pm" }
+                @TRUSTED;
             qr{^(?:$inc)\/*(?:$t)$};
         };
+        my $orig_xsloader_load = \&XSLoader::load;
         my $xsloader_path = $INC{'XSLoader.pm'};
         my $dynaloader_path = $INC{'DynaLoader.pm'};
         my $TRUE_INC = join "\0", @INC;
@@ -64,6 +68,12 @@ sub import {
             join("\0", map { refaddr( $_ ) } @code);
         };
         my $codehash; # predefine
+        *XSLoader::load = sub {
+            my ($module, ) = @_;
+            local $^P; # do not use debugger in here
+            die "no xs(${module} is not trusted)" unless $trusted{$module};
+            goto $orig_xsloader_load;
+        };
         *DynaLoader::dl_install_xsub = sub {
             my $c0 = [caller(0)]->[1];
             my $c1 = [caller(1)]->[1];
