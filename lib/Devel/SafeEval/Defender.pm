@@ -75,6 +75,7 @@ sub import {
         no strict 'refs';
         my @code; # predefine
         local $^P; # defence from debugger
+        # code taken from DynaLoader & XSLoader
         my $loader = sub {
             my ( $module, ) = @_;
             $module = "$module"; # defence: overload hack
@@ -106,10 +107,25 @@ sub import {
             my $modfname = $modparts[-1];
 
             my $modpname   = join( '/', @modparts );
-            my $modlibname = ( caller() )[1];
-            my $c          = @modparts;
-            $modlibname =~ s,[\\/][^\\/]+$,, while $c--;    # Q&D basename
-            my $file = "$modlibname/auto/$modpname/$modfname.so";
+            my $file;
+            my @dirs;
+            foreach (@INC) {
+
+                my $dir = "$_/auto/$modpname";
+
+                next unless -d $dir;    # skip over uninteresting directories
+
+                # check for common cases to avoid autoload of dl_findfile
+                my $try = "$dir/$modfname.so";
+                last if $file = ( -f $try ) && $try;
+
+                # no luck here, save dir for possible later dl_findfile search
+                push @dirs, $dir;
+            }
+
+            # last resort, let dl_findfile have a go in all known locations
+            $file = dl_findfile( map( "-L$_", @dirs, @INC ), $modfname )
+              unless $file;
 
            #   print STDERR "XSLoader::load for $module ($file)\n" if $dl_debug;
 
