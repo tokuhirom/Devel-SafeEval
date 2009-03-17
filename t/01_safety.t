@@ -41,7 +41,7 @@ like(
         code    => 'DynaLoader::dl_install_xsub("hoge")',
     ),
     qr{no xs},
-    'dl_install_xsub'
+    'dl_install_xsub is dangerous'
 );
 
 like(

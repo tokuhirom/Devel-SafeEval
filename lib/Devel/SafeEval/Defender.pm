@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Carp ();
 use Scalar::Util 'refaddr';
+use Digest::MD5 ();
 
 my $SYS_PROTECT_VERSION = 0.02;
 my @TRUSTED;
@@ -68,33 +69,36 @@ sub import {
             push @code, XSLoader->can('load');
             join("\0", map { refaddr( $_ ) } @code);
         };
-        local $^P; # do not use debugger in here
+        no strict 'refs';
+        my $key = Digest::MD5::md5_hex(rand() . time() . 'dan the api');
         my $codehash; # predefine
+        local $^P; # defence from debugger
         *XSLoader::load = sub {
             my ($module, ) = @_;
-            local $^P; # do not use debugger in here
             die "no xs(${module} is not trusted)" unless $trusted{$module};
-            goto $orig_xsloader_load;
+            local *{__PACKAGE__ . "::key"} = sub { $key };
+            $orig_xsloader_load->(@_);
         };
         *DynaLoader::bootstrap = sub {
             my ($module, ) = @_;
             die "no xs(${module} is not trusted)" unless $trusted{$module};
-            goto $orig_dynaloader_bootstrap;
+            local *{__PACKAGE__ . "::key"} = sub { $key };
+            $orig_dynaloader_bootstrap->(@_);
         };
         *DynaLoader::dl_install_xsub = sub {
-            my $c0 = [caller(0)]->[1];
-            my $c1 = [caller(1)]->[1];
+            unless (__PACKAGE__->can('key')) {
+                die "no xs";
+            }
+            unless (__PACKAGE__->key() eq $key) {
+                die "are you cracker?";
+            }
             if ($TRUE_INC ne join("\0", @INC)) {
                 die "do not modify \@INC";
             }
             if ($codehash ne $loader_code_hash->()) {
                 die "you changed DynaLoader or XSLoader?";
             }
-            if (($c0 eq $xsloader_path||$c0 eq $dynaloader_path) && $c1 =~ $trusted_re) {
-                goto $ix;
-            } else {
-                die "no xs($c0,$c1)";
-            }
+            goto $ix;
         };
         $codehash = $loader_code_hash->();
     }
