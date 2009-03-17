@@ -11,6 +11,8 @@ use Time::HiRes 'alarm';
 use Carp ();
 use DynaLoader;
 use File::Temp;
+use POSIX ':sys_wait_h';
+use Config;
 require Devel::SafeEval::Defender;
 
 # XSLoader::load(__PACKAGE__, $VERSION);
@@ -63,6 +65,7 @@ sub _body {
     my $tmp = File::Temp->new(UNLINK => 1);
     my $pid = -1;
     local $@;
+    local $?; # $CHILD_ERROR
     my $stdout = '';
     eval {
         my $deny = join ',', qw{
@@ -91,7 +94,12 @@ sub _body {
     if (my $e = $@) {
         return $e;
     } else {
-        return $stdout;
+        if (WIFSIGNALED($?)) {
+            my $sig = WTERMSIG($?);
+            return 'signal received: ' . [split / /, $Config{sig_name}]->[11];
+        } else {
+            return $stdout;
+        }
     }
 }
 

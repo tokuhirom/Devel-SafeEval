@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 16;
+use Test::More tests => 17;
 use Devel::SafeEval;
 
 like(
@@ -141,4 +141,13 @@ like(
     ),
     qr{#line is not allowed},
     'deny #line in the next line'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => "unpack 'p', 0xdeadbeef",
+    ),
+    qr{signal received: SEGV},
+    'handle segv'
 );
