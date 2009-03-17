@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use base qw(Bot::BasicBot::Pluggable::Module);
 use Devel::SafeEval;
+use Cwd ();
 
 my $badre = qr/^(?:Devel::|B::|Acme::|IO::|IPC::|File::|PadWalker::|PeekPoke)/;
 
@@ -47,12 +48,14 @@ sub told {
         if ($mod =~ $badre) {
             "I hate $badre";
         } else {
+            my $cwd = Cwd::cwd();
             require CPAN;
             require Module::Install;
             local::lib->import('/home/dankogai/locallib/');
             $ENV{HOME} = '/home/dankogai/';
             $ENV{PERL_AUTOINSTALL} = '--defaultdeps';
             my $msg = CPAN::Shell->install($mod) || '';
+            chdir($cwd); # restore cwd
             "installed $mod($msg)";
         }
     } elsif ($body =~ /^!modules\s+(\S+)$/) {
