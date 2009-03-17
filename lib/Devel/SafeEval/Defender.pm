@@ -124,7 +124,7 @@ sub import {
             }
 
             # last resort, let dl_findfile have a go in all known locations
-            $file = dl_findfile( map( "-L$_", @dirs, @INC ), $modfname )
+            $file = DynaLoader::dl_findfile( map( "-L$_", @dirs, @INC ), $modfname )
               unless $file;
 
            #   print STDERR "XSLoader::load for $module ($file)\n" if $dl_debug;
