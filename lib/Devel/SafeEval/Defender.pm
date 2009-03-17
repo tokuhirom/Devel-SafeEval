@@ -9,7 +9,7 @@ my $SYS_PROTECT_VERSION = 0.02;
 my @TRUSTED;
 BEGIN {
     @TRUSTED = (
-        qw(XSLoader Opcode Math::BigInt::FastCalc), # core modules
+        qw(XSLoader List::Util Opcode Math::BigInt::FastCalc), # core modules
 
         qw(Moose Class::MOP), # Moose related stuff
 
