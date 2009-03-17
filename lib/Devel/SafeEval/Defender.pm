@@ -52,6 +52,7 @@ sub import {
             qr{^(?:$inc)\/*(?:$t)$};
         };
         my $orig_xsloader_load = \&XSLoader::load;
+        my $orig_dynaloader_bootstrap = \&DynaLoader::bootstrap;
         my $xsloader_path = $INC{'XSLoader.pm'};
         my $dynaloader_path = $INC{'DynaLoader.pm'};
         my $TRUE_INC = join "\0", @INC;
@@ -67,12 +68,18 @@ sub import {
             push @code, XSLoader->can('load');
             join("\0", map { refaddr( $_ ) } @code);
         };
+        local $^P; # do not use debugger in here
         my $codehash; # predefine
         *XSLoader::load = sub {
             my ($module, ) = @_;
             local $^P; # do not use debugger in here
             die "no xs(${module} is not trusted)" unless $trusted{$module};
             goto $orig_xsloader_load;
+        };
+        *DynaLoader::bootstrap = sub {
+            my ($module, ) = @_;
+            die "no xs(${module} is not trusted)" unless $trusted{$module};
+            goto $orig_dynaloader_bootstrap;
         };
         *DynaLoader::dl_install_xsub = sub {
             my $c0 = [caller(0)]->[1];
