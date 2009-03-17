@@ -71,7 +71,6 @@ sub import {
         };
         my $croak = Carp->can('croak');
         no strict 'refs';
-        my $key = Digest::MD5::md5_hex(rand() . time() . 'dan the api');
         my @code; # predefine
         local $^P; # defence from debugger
         my $loader = sub {
@@ -87,8 +86,6 @@ sub import {
             if ( $TRUE_INC ne join( "\0", @INC ) ) {
                 die "do not modify \@INC";
             }
-
-            local *{ __PACKAGE__ . "::key" } = sub { $key };
 
             die q{XSLoader::load('Your::Module', $Your::Module::VERSION)}
               unless @_;
