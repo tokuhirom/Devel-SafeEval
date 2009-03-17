@@ -44,8 +44,9 @@ sub import {
         my $ix = \&DynaLoader::dl_install_xsub;
 
         my $trusted_re = do {
-            my $t = join '|', @TRUSTED;
-            qr{\/(?:$t)$};
+            my $inc = join '|', map { quotemeta $_ } @INC;
+            my $t = join '|', map { quotemeta $_ } @TRUSTED;
+            qr{^(?:$inc)\/*(?:$t)$};
         };
         my $xsloader_path = $INC{'XSLoader.pm'};
         my $dynaloader_path = $INC{'DynaLoader.pm'};
