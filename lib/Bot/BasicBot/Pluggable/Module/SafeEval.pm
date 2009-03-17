@@ -20,7 +20,7 @@ sub told {
             %$opts,
             code => $code,
         );
-        substr($res, 0, 100) || 'no output';
+        substr($res, 0, 512) || 'no output';
     } elsif ($body =~ /^!ever$/) {
         $Devel::SafeEval::VERSION;
     } elsif ($body =~ /^!reload$/) {
