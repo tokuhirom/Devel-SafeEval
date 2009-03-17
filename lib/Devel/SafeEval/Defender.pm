@@ -53,7 +53,6 @@ sub import {
             join("\0", map { refaddr( $_ ) } @_);
         };
         my $loader_code = sub {
-            my $module = shift;
             no strict 'refs';
             my @code = (
                 grep { $_ }
