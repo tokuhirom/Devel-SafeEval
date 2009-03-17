@@ -57,7 +57,10 @@ sub import {
         my $xsloader_path = $INC{'XSLoader.pm'};
         my $dynaloader_path = $INC{'DynaLoader.pm'};
         my $TRUE_INC = join "\0", @INC;
-        my $loader_code_hash = sub {
+        my $gen_codehash = sub {
+            join("\0", map { refaddr( $_ ) } @_);
+        };
+        my $loader_code = sub {
             my $module = shift;
             no strict 'refs';
             my @code = (
@@ -67,11 +70,11 @@ sub import {
                 keys %{"DynaLoader::"}
             );
             push @code, XSLoader->can('load');
-            join("\0", map { refaddr( $_ ) } @code);
+            @code;
         };
         no strict 'refs';
         my $key = Digest::MD5::md5_hex(rand() . time() . 'dan the api');
-        my $codehash; # predefine
+        my @code; # predefine
         local $^P; # defence from debugger
         *XSLoader::load = sub {
             my ($module, ) = @_;
@@ -95,12 +98,12 @@ sub import {
             if ($TRUE_INC ne join("\0", @INC)) {
                 die "do not modify \@INC";
             }
-            if ($codehash ne $loader_code_hash->()) {
+            if ($gen_codehash->(@code) ne $gen_codehash->($loader_code->())) {
                 die "you changed DynaLoader or XSLoader?";
             }
             goto $ix;
         };
-        $codehash = $loader_code_hash->();
+        @code = $loader_code->();
     }
 }
 
