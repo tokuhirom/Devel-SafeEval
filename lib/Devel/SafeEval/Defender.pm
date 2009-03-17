@@ -10,7 +10,7 @@ BEGIN {
     @TRUSTED = (
         qw(XSLoader List::Util Opcode Math::BigInt::FastCalc Time::HiRes Data::Dumper), # core modules
 
-        qw(Moose Class::MOP), # Moose related stuff
+        qw(Moose Class::MOP Class::C3::XS), # Moose related stuff
 
         qw(threads), # ithreads
 
