@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 11;
 use Devel::SafeEval;
 
 like(
@@ -106,3 +106,14 @@ unlike(
     'yappo attack'
 );
 
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            sub DB::DB { }
+            DynaLoader::bootstrap('Encode');
+...
+    ),
+    qr{i hate debugger},
+    'deny debugger'
+);

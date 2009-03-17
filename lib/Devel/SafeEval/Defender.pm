@@ -59,12 +59,11 @@ sub import {
             no strict 'refs';
             my @code = (
                 grep { $_ }
-                map { DynaLoader->can($_) }
+                map { *{"DynaLoader::$_"}{CODE} }
                 sort grep /^dl_/,
                 keys %{"DynaLoader::"}
             );
-            push @code, XSLoader->can('load');
-            push @code, Carp->can('croak');
+            push @code, *{"XSLoader::load"}{CODE};
             @code;
         };
         my $croak = Carp->can('croak');
@@ -77,6 +76,12 @@ sub import {
         my $loader = sub {
             my ( $module, ) = @_;
             $module = "$module"; # defence: overload hack
+            {
+                no warnings 'once';
+                if (*{"DB::DB"}{CODE}) {
+                    die "i hate debugger";
+                }
+            }
             unless (defined $module) {
                 $confess->("Usage: DynaLoader::bootstrap(module)");
             }
