@@ -76,7 +76,7 @@ sub import {
         my @code; # predefine
         local $^P; # defence from debugger
         my $loader = sub {
-            my ( $module, @args ) = @_;
+            my ( $module, ) = @_;
             $module = "$module"; # defence: overload hack
             unless ($module) {
                 $confess->("Usage: DynaLoader::bootstrap(module)");
