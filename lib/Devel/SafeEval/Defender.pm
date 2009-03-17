@@ -81,6 +81,9 @@ sub import {
             unless ($module) {
                 $confess->("Usage: DynaLoader::bootstrap(module)");
             }
+            if (tied $module) {
+                $croak->("tied object is not allowed for module name");
+            }
             die "no xs(${module} is not trusted)" unless $trusted{$module};
             if ( $gen_codehash->(@code) ne $gen_codehash->( $loader_code->() ) )
             {
