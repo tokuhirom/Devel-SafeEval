@@ -25,11 +25,15 @@ BEGIN {
 
 sub import {
     no warnings 'redefine';
+    no strict 'refs';
     require DynaLoader;
     require Carp;
     require XSLoader;
+    my $croak   = *{"Carp::croak"}{CODE};
+    my $carp    = *{"Carp::carp"}{CODE};
+    my $confess = *{"Carp::confess"}{CODE};
     *DynaLoader::boot_DynaLoader = sub {
-        Carp::croak 'you should not call boot_DynaLoader twice';
+        $croak->('you should not call boot_DynaLoader twice');
         die 'you break a Carp::croak?';
     };
 
@@ -53,7 +57,6 @@ sub import {
             join("\0", map { refaddr( $_ ) } @_);
         };
         my $loader_code = sub {
-            no strict 'refs';
             my @code = (
                 grep { $_ }
                 map { *{"DynaLoader::$_"}{CODE} }
@@ -63,10 +66,6 @@ sub import {
             push @code, *{"XSLoader::load"}{CODE};
             @code;
         };
-        no strict 'refs';
-        my $croak   = *{"Carp::croak"}{CODE};
-        my $carp    = *{"Carp::carp"}{CODE};
-        my $confess = *{"Carp::confess"}{CODE};
         my @code; # predefine
         local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
