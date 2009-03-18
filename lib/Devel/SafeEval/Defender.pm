@@ -136,7 +136,7 @@ sub import {
             }
 
             if (tied ${"${module}::VERSION"}) {
-                die "don't tie \$module";
+                die "don't tie \$VERSION";
             }
 
             my @modparts = split( /::/, $module );

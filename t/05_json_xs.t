@@ -40,4 +40,4 @@ tie $JSON::XS::VERSION, 'F';
 XSLoader::load("JSON::XS")
 --- test
 unlike $res, qr{dl_install_xsub};
-like $res, qr{don't tie \$module};
+like $res, qr{don't tie \$VERSION};
