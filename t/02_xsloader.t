@@ -325,3 +325,23 @@ like(
     'deny tie $module(kazuho++)'
 );
 
+unlike(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            {
+                package F;
+                use base 'Tie::Array';
+                sub TIEARRAY { bless {} }
+                sub FETCHSIZE { 3 }
+                sub FETCH { warn 'orz'; warn caller(); 1 }
+            }
+            my @x;
+            tie @x, 'F';
+            DynaLoader::bootstrap(@x);
+...
+    ),
+    qr{orz},
+    'deny tie @_(kazuho++)'
+);
+

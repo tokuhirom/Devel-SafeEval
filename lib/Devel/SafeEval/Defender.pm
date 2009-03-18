@@ -70,7 +70,10 @@ sub import {
         my @code; # predefine
         local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
-        my $loader = sub {
+        my $loader = sub ($;$) {
+            if (tied @_) {
+                die 'do not tie @_';
+            }
             if (tied %DB::) {
                 die 'do not tie %DB::';
             }
@@ -159,6 +162,8 @@ sub import {
 
             return $xs->(@_);
         };
+        undef *XSLoader::load;
+        undef *DynaLoader::bootstrap;
         *XSLoader::load = $loader;
         *DynaLoader::bootstrap = $loader;
 
