@@ -102,75 +102,37 @@ sub import {
             my $modfname = $modparts[-1];
 
             my $modpname   = join( '/', @modparts );
-            my $file;
-            my @dirs;
-            for my $path (@INC) {
-
-                my $dir = "$path/auto/$modpname";
-
-                next unless -d $dir;    # skip over uninteresting directories
-
-                # check for common cases to avoid autoload of dl_findfile
-                my $try = "$dir/$modfname.so";
-                last if $file = ( -f $try ) && $try;
-
-                # no luck here, save dir for possible later dl_findfile search
-                push @dirs, $dir;
-            }
-
-            # last resort, let dl_findfile have a go in all known locations
-            $file = $dl_findfile->( map( "-L$_", @dirs, @INC ), $modfname )
-              unless $file;
-
-           #   print STDERR "XSLoader::load for $module ($file)\n" if $dl_debug;
-
-            my $bs = $file;
-            $bs =~ s/(\.\w+)?(;\d*)?$/\.bs/; # look for .bs 'beside' the library
-
-            goto retry if not -f $file or -s $bs;
+            my $file = sub {;
+                for my $path (@INC) {
+                    my $dir = "$path/auto/$modpname";
+                    next unless -d $dir;
+                    my $try = "$dir/$modfname.so";
+                    if (-f $try) {
+                        return $try;
+                    }
+                }
+                return;
+            }->();
+            $croak->("cannot find $module") unless defined $file;
 
             my $bootname = "boot_$module";
             $bootname =~ s/\W/_/g;
-            @DynaLoader::dl_require_symbols = ($bootname);
-
-            my $boot_symbol_ref;
-
-            # Many dynamic extension loading problems will appear to come from
-            # this section of code: XYZ failed at line 123 of DynaLoader.pm.
-            # Often these errors are actually occurring in the initialisation
-            # C code of the extension XS file. Perl reports the error as being
-            # in this perl code simply because this was the last perl code
-            # it executed.
+            local @DynaLoader::dl_require_symbols = ($bootname);
 
             my $libref = $dl_load_file->( $file, 0 ) or do {
                 $croak->(
                     "Can't load '$file' for module $module: " . $dl_error->() );
             };
-            push( @DynaLoader::dl_librefs, $libref );    # record loaded object
 
-            my @unresolved = $dl_undef_symbols->();
-            if (@unresolved) {
-                $carp->(
-"Undefined symbols present after loading $file: @unresolved\n"
-                );
-            }
-
-            $boot_symbol_ref = $dl_find_symbol->( $libref, $bootname ) or do {
+            my $boot_symbol_ref = $dl_find_symbol->( $libref, $bootname ) or do {
                 $croak->("Can't find '$bootname' symbol in $file\n");
             };
-
-            push( @DynaLoader::dl_modules, $module );    # record loaded module
 
           boot:
             my $xs = $dl_install_xsub->( "${module}::bootstrap", $boot_symbol_ref,
                 $file );
 
-            # See comment block above
-            push( @DynaLoader::dl_shared_objects, $file ); # record files loaded
-            return &$xs(@_);
-
-          retry:
-            goto &$bootstrap_inherit;
+            return $xs->(@_);
         };
         *XSLoader::load = $loader;
         *DynaLoader::bootstrap = $loader;
