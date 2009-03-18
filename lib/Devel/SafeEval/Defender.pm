@@ -109,12 +109,12 @@ sub import {
                     # this check before assign
                     die "tied object is not allowed for module name";
                 }
+                if (ref $_ ne '') {
+                    die 'do not ref $_[n]';
+                }
             }
 
             my $module = $_[0];
-            if (ref $module ne '') {
-                die 'ref module name is not allowed';
-            }
             $module = "$module"; # defence: overload hack
             unless (defined $module) {
                 die "Usage: DynaLoader::bootstrap(module)";

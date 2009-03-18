@@ -127,7 +127,7 @@ like(
             DynaLoader::bootstrap(bless {}, 'F');
 ...
     ),
-    qr{ref module name is not allowed},
+    qr{do not ref \$_\[n\]},
     'deny ref module name'
 );
 
@@ -150,7 +150,7 @@ like(
             DynaLoader::bootstrap(bless {}, '0');
 ...
     ),
-    qr{ref module name is not allowed},
+    qr{do not ref \$_\[n\]},
     'deny miyagawa'
 );
 
