@@ -81,6 +81,8 @@ sub import {
         local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
         $loader = sub ($) {
+            package DB; # deny eval-DB.
+
             if (tied @_) {
                 die 'do not tie @_';
             }
