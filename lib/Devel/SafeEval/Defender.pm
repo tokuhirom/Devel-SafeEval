@@ -138,6 +138,9 @@ sub import {
             if (tied ${"${module}::VERSION"}) {
                 die "don't tie \$VERSION";
             }
+            if (ref ${"${module}::VERSION"}) {
+                die "don't ref \$VERSION";
+            }
 
             my @modparts = split( /::/, $module );
             my $modfname = $modparts[-1];
