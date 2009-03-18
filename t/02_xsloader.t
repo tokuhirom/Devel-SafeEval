@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 12;
+use Test::More tests => 14;
 use Devel::SafeEval;
 
 like(
@@ -142,3 +142,15 @@ like(
     qr{bootstrap method is not allowed },
     'bootstrap'
 );
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            DynaLoader::bootstrap(bless {}, '0');
+...
+    ),
+    qr{ref module name is not allowed},
+    'deny miyagawa'
+);
+

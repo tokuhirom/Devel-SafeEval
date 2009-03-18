@@ -72,7 +72,7 @@ sub import {
         no warnings 'once';
         my $loader = sub {
             my ( $module, ) = @_;
-            if (ref $module) {
+            if (ref $module ne '') {
                 die 'ref module name is not allowed';
             }
             if (tied $module) {
