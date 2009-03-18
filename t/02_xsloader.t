@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 20;
+use Test::More tests => 21;
 use Devel::SafeEval;
 
 like(
@@ -270,4 +270,22 @@ unlike(
     ),
     qr{orz},
     'deny tie %DynaLoader'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            {
+                package F;
+                use base 'Tie::Scalar';
+                sub TIESCALAR { bless {} }
+                sub FETCH { Carp::croak "FETCH" }
+            }
+            tie $INC[0], 'F';
+            DynaLoader::bootstrap('Encode');
+...
+    ),
+    qr{do not tie \$INC},
+    'deny tie $INC[0]'
 );

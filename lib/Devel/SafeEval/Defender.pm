@@ -88,6 +88,14 @@ sub import {
             if (tied @INC) {
                 die 'do not tie @INC';
             }
+            for (@INC) {
+                if (tied $_) {
+                    die 'do not tie $INC[n]';
+                }
+            }
+            if (tied @INC) {
+                die 'do not tie @INC';
+            }
             if (tied %INC) {
                 die 'do not tie %INC';
             }
