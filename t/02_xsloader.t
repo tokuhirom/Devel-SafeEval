@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 24;
+use Test::More tests => 25;
 use Devel::SafeEval;
 
 like(
@@ -131,17 +131,17 @@ like(
     'deny ref module name'
 );
 
-like(
-    Devel::SafeEval->run(
-        timeout => 1,
-        code    => <<'...'
-            sub Encode::bootstrap { warn 'oops' }
-            DynaLoader::bootstrap('Encode');
-...
-    ),
-    qr{bootstrap method is not allowed },
-    'bootstrap'
-);
+#   like(
+#       Devel::SafeEval->run(
+#           timeout => 1,
+#           code    => <<'...'
+#               sub Encode::bootstrap { warn 'oops' }
+#               DynaLoader::bootstrap('Encode');
+#   ...
+#       ),
+#       qr{bootstrap method is not allowed },
+#       'bootstrap'
+#   );
 
 like(
     Devel::SafeEval->run(
@@ -345,3 +345,33 @@ unlike(
     'deny tie @_(kazuho++)'
 );
 
+unlike(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            sub Encode::define_encoding {
+                eval 'package DB;sub f { eval q{$dl_install_xsub->()}; 
+                            warn $@ }';
+                goto &DB::f;
+            }
+            XSLoader::load("Encode")
+...
+    ),
+    qr{dl_install_xsub},
+    'deny namespace hack @_(kazuho++)'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            sub Encode::define_encoding {
+                die 'orz';
+            }
+            XSLoader::load("Encode");
+            print Encode::encode('utf8', 'hoge');
+...
+    ),
+    qr{hoge},
+    'deny namespace hack @_(kazuho++)'
+);

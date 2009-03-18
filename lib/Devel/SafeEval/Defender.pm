@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Carp ();
 use Scalar::Util ();
+use Encode (); # preload Encode.pm
 
 my @TRUSTED;
 BEGIN {
@@ -119,6 +120,8 @@ sub import {
 
             my $module = $_[0];
             $module = "$module"; # defence: overload hack
+            return if $module eq 'Encode'; # Encode is preloaded
+
             unless (defined $module) {
                 die "Usage: DynaLoader::bootstrap(module)";
             }
