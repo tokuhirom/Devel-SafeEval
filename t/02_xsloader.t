@@ -130,3 +130,15 @@ like(
     qr{ref module name is not allowed},
     'deny ref module name'
 );
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            sub Encode::bootstrap { warn 'oops' }
+            DynaLoader::bootstrap('Encode');
+...
+    ),
+    qr{bootstrap method is not allowed },
+    'bootstrap'
+);

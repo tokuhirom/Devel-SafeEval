@@ -96,7 +96,9 @@ sub import {
 
             # work with static linking too
             my $b = "$module\::bootstrap";
-            goto &$b if defined &$b;
+            if (defined &$b) {
+                die "bootstrap method is not allowed";
+            }
 
             my @modparts = split( /::/, $module );
             my $modfname = $modparts[-1];
