@@ -32,6 +32,7 @@ sub import {
     no strict 'refs';
     require DynaLoader;
     require XSLoader;
+    require Config;
     my $refaddr = *Scalar::Util::refaddr{CODE};
     *DynaLoader::boot_DynaLoader = sub {
         die 'you should not call boot_DynaLoader twice';
@@ -49,6 +50,8 @@ sub import {
         my $dl_install_xsub   = \&DynaLoader::dl_install_xsub;
         my $dl_load_file      = \&DynaLoader::dl_load_file;
         my $dl_undef_symbols  = \&DynaLoader::dl_undef_symbols;
+
+        my $dlext = $Config::Config{'dlext'};
 
         my %trusted = map { $_ => 1 } @TRUSTED;
         my $TRUE_INC = join "\0", @INC;
@@ -137,7 +140,7 @@ sub import {
                 for my $path (@INC) {
                     my $dir = "$path/auto/$modpname";
                     next unless -d $dir;
-                    my $try = "$dir/$modfname.so";
+                    my $try = "$dir/$modfname.${dlext}";
                     if (-f $try) {
                         return $try;
                     }
