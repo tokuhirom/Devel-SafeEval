@@ -172,7 +172,7 @@ sub import {
             my $xs = $dl_install_xsub->( "${module}::bootstrap", $boot_symbol_ref,
                 $file );
 
-            return $xs->(@_);
+            goto $xs;
         };
         undef *XSLoader::load;
         undef *DynaLoader::bootstrap;
