@@ -49,8 +49,23 @@ sub import {
 
         my $loader;
         my $wrapper = sub ($;$) {
+            my $alarm = alarm 0;
+
+            if (   tied %SIG
+                || tied $SIG{__DIE__}
+                || tied $SIG{__WARN__}
+                || ref $SIG{__DIE__}  ne ''
+                || ref $SIG{__WARN__} ne '' )
+            {
+                die 'do not tie signal';
+            }
+            local $SIG{__DIE__}  = 'DEFAULT';
+            local $SIG{__WARN__} = 'DEFAULT';
+
             my $code = $loader->($_[0]);
             $code->(@_) if $code;
+
+            alarm $alarm;
         };
 
         my $dl_error          = \&DynaLoader::dl_error;
