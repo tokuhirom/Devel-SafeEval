@@ -154,3 +154,15 @@ like(
     'deny miyagawa'
 );
 
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            sub DB::foo { }
+            DynaLoader::bootstrap('Encode');
+...
+    ),
+    qr{you changed DynaLoader or XSLoader or DB},
+    'deny DB'
+);
+

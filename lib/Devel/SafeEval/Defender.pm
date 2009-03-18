@@ -56,6 +56,7 @@ sub import {
         my $gen_codehash = sub {
             join("\0", map { $refaddr->( $_ ) } @_);
         };
+        no warnings 'once';
         my $loader_code = sub {
             my @code = (
                 grep { $_ }
@@ -63,13 +64,13 @@ sub import {
                 sort grep /^dl_/,
                 keys %{"DynaLoader::"}
             );
+            push @code, grep { $_ } map { *{"DB::$_"}{CODE} } sort %{"DB::"};
             push @code, *{"XSLoader::load"}{CODE};
             @code;
         };
         my @code; # predefine
         local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
-        no warnings 'once';
         my $loader = sub {
             my ( $module, ) = @_;
             if (ref $module ne '') {
@@ -79,6 +80,9 @@ sub import {
                 die "tied object is not allowed for module name";
             }
             $module = "$module"; # defence: overload hack
+            if ($INC{'DB.pm'}) {
+                die "i hate debugger";
+            }
             if (*{"DB::DB"}{CODE}) {
                 die "i hate debugger";
             }
@@ -88,7 +92,7 @@ sub import {
             die "no xs(${module} is not trusted)" unless $trusted{$module};
             if ( $gen_codehash->(@code) ne $gen_codehash->( $loader_code->() ) )
             {
-                die "you changed DynaLoader or XSLoader?";
+                die "you changed DynaLoader or XSLoader or DB?";
             }
             if ( $TRUE_INC ne join( "\0", @INC ) ) {
                 die "do not modify \@INC";
