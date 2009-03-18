@@ -45,6 +45,12 @@ sub import {
         # use kazuho method
         # http://d.hatena.ne.jp/kazuhooku/20090316/1237205628
 
+        my $loader;
+        my $wrapper = sub ($;$) {
+            my $code = $loader->($_[0]);
+            $code->(@_) if $code;
+        };
+
         my $dl_error          = \&DynaLoader::dl_error;
         my $dl_find_symbol    = \&DynaLoader::dl_find_symbol;
         my $dl_findfile       = \&DynaLoader::dl_findfile;
@@ -74,7 +80,7 @@ sub import {
         my @code; # predefine
         local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
-        my $loader = sub ($;$) {
+        $loader = sub ($) {
             if (tied @_) {
                 die 'do not tie @_';
             }
@@ -175,12 +181,12 @@ sub import {
             my $xs = $dl_install_xsub->( "${module}::bootstrap", $boot_symbol_ref,
                 $file );
 
-            goto $xs;
+            return $xs;
         };
         undef *XSLoader::load;
         undef *DynaLoader::bootstrap;
-        *XSLoader::load = $loader;
-        *DynaLoader::bootstrap = $loader;
+        *XSLoader::load = $wrapper;
+        *DynaLoader::bootstrap = $wrapper;
 
         my $fake = sub { die "do not call me" };
         *DynaLoader::bootstrap_inherit = $fake;
