@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use Carp ();
 use Scalar::Util ();
-use Digest::MD5 ();
 
 my @TRUSTED;
 BEGIN {
