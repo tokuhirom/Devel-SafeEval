@@ -76,6 +76,9 @@ sub import {
             if (tied @INC) {
                 die 'do not tie @INC';
             }
+            if (tied %INC) {
+                die 'do not tie %INC';
+            }
             if (ref $module ne '') {
                 die 'ref module name is not allowed';
             }

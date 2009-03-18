@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 16;
+use Test::More tests => 17;
 use Devel::SafeEval;
 
 like(
@@ -185,3 +185,20 @@ like(
     'deny tie @INC(miyagawa++)'
 );
 
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            {
+                package f;
+                use base 'Tie::Hash';
+                sub TIEHASH { bless {} }
+                sub FETCH { 1 }
+            }
+            tie %INC, 'f';
+            DynaLoader::bootstrap('Encode');
+...
+    ),
+    qr{do not tie %INC},
+    'deny tie %INC(kazuho++)'
+);
