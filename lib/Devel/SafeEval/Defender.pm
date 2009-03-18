@@ -104,9 +104,9 @@ sub import {
             my $modpname   = join( '/', @modparts );
             my $file;
             my @dirs;
-            foreach (@INC) {
+            for my $path (@INC) {
 
-                my $dir = "$_/auto/$modpname";
+                my $dir = "$path/auto/$modpname";
 
                 next unless -d $dir;    # skip over uninteresting directories
 
