@@ -104,9 +104,11 @@ sub import {
             if (tied %INC) {
                 die 'do not tie %INC';
             }
-            if (tied $_[0]) {
-                # this check before assign
-                die "tied object is not allowed for module name";
+            for (@_) {
+                if (tied $_) {
+                    # this check before assign
+                    die "tied object is not allowed for module name";
+                }
             }
 
             my $module = $_[0];
