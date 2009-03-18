@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 17;
+use Test::More tests => 18;
 use Devel::SafeEval;
 
 like(
@@ -114,7 +114,7 @@ like(
             DynaLoader::bootstrap('Encode');
 ...
     ),
-    qr{i hate debugger},
+    qr{you changed DynaLoader or XSLoader or DB},
     'deny debugger'
 );
 
@@ -201,4 +201,27 @@ like(
     ),
     qr{do not tie %INC},
     'deny tie %INC(kazuho++)'
+);
+
+unlike(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            {
+                package DB;
+                sub f { warn 'k'; eval "\$dl_install_xsub->()"; warn $@ }
+            }
+            {
+                package F;
+                use base 'Tie::Scalar';
+                sub TIESCALAR { bless {} }
+                sub FETCH { goto &DB::f }
+            }
+            my $x;
+            tie $x, 'F';
+            DynaLoader::bootstrap($x);
+...
+    ),
+    qr{dl_install_xsub},
+    'deny tie $module(kazuho++)'
 );

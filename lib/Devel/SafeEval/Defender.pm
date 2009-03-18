@@ -43,7 +43,6 @@ sub import {
         # use kazuho method
         # http://d.hatena.ne.jp/kazuhooku/20090316/1237205628
 
-        my $bootstrap_inherit = \&DynaLoader::bootstrap_inherit;
         my $dl_error          = \&DynaLoader::dl_error;
         my $dl_find_symbol    = \&DynaLoader::dl_find_symbol;
         my $dl_findfile       = \&DynaLoader::dl_findfile;
@@ -72,34 +71,30 @@ sub import {
         local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
         my $loader = sub {
-            my ( $module, ) = @_;
+            # check the DB first
+            if ( $gen_codehash->(@code) ne $gen_codehash->( $loader_code->() ) )
+            {
+                die "you changed DynaLoader or XSLoader or DB?";
+            }
+
+            my $module = $_[0];
             if (tied @INC) {
                 die 'do not tie @INC';
             }
             if (tied %INC) {
                 die 'do not tie %INC';
             }
-            if (ref $module ne '') {
-                die 'ref module name is not allowed';
-            }
             if (tied $module) {
                 die "tied object is not allowed for module name";
             }
+            if (ref $module ne '') {
+                die 'ref module name is not allowed';
+            }
             $module = "$module"; # defence: overload hack
-            if ($INC{'DB.pm'}) {
-                die "i hate debugger";
-            }
-            if (*{"DB::DB"}{CODE}) {
-                die "i hate debugger";
-            }
             unless (defined $module) {
                 die "Usage: DynaLoader::bootstrap(module)";
             }
             die "no xs(${module} is not trusted)" unless $trusted{$module};
-            if ( $gen_codehash->(@code) ne $gen_codehash->( $loader_code->() ) )
-            {
-                die "you changed DynaLoader or XSLoader or DB?";
-            }
             if ( $TRUE_INC ne join( "\0", @INC ) ) {
                 die "do not modify \@INC";
             }
