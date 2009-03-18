@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 11;
+use Test::More tests => 12;
 use Devel::SafeEval;
 
 like(
@@ -116,4 +116,17 @@ like(
     ),
     qr{i hate debugger},
     'deny debugger'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            package F;
+            use overload q{""} => sub { 'Encode' };
+            DynaLoader::bootstrap(bless {}, 'F');
+...
+    ),
+    qr{ref module name is not allowed},
+    'deny ref module name'
 );

@@ -74,20 +74,21 @@ sub import {
         my @code; # predefine
         local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
+        no warnings 'once';
         my $loader = sub {
             my ( $module, ) = @_;
-            $module = "$module"; # defence: overload hack
-            {
-                no warnings 'once';
-                if (*{"DB::DB"}{CODE}) {
-                    die "i hate debugger";
-                }
-            }
-            unless (defined $module) {
-                $confess->("Usage: DynaLoader::bootstrap(module)");
+            if (ref $module) {
+                die 'ref module name is not allowed';
             }
             if (tied $module) {
                 $croak->("tied object is not allowed for module name");
+            }
+            $module = "$module"; # defence: overload hack
+            if (*{"DB::DB"}{CODE}) {
+                die "i hate debugger";
+            }
+            unless (defined $module) {
+                $confess->("Usage: DynaLoader::bootstrap(module)");
             }
             die "no xs(${module} is not trusted)" unless $trusted{$module};
             if ( $gen_codehash->(@code) ne $gen_codehash->( $loader_code->() ) )
