@@ -31,15 +31,10 @@ sub import {
     no warnings 'redefine';
     no strict 'refs';
     require DynaLoader;
-    require Carp;
     require XSLoader;
-    my $croak   = *{"Carp::croak"}{CODE};
-    my $carp    = *{"Carp::carp"}{CODE};
-    my $confess = *{"Carp::confess"}{CODE};
     my $refaddr = *Scalar::Util::refaddr{CODE};
     *DynaLoader::boot_DynaLoader = sub {
-        $croak->('you should not call boot_DynaLoader twice');
-        die 'you break a Carp::croak?';
+        die 'you should not call boot_DynaLoader twice';
     };
 
     %ENV = (PATH => '', PERL5LIB => $ENV{PERL5LIB});
@@ -81,14 +76,14 @@ sub import {
                 die 'ref module name is not allowed';
             }
             if (tied $module) {
-                $croak->("tied object is not allowed for module name");
+                die "tied object is not allowed for module name";
             }
             $module = "$module"; # defence: overload hack
             if (*{"DB::DB"}{CODE}) {
                 die "i hate debugger";
             }
             unless (defined $module) {
-                $confess->("Usage: DynaLoader::bootstrap(module)");
+                die "Usage: DynaLoader::bootstrap(module)";
             }
             die "no xs(${module} is not trusted)" unless $trusted{$module};
             if ( $gen_codehash->(@code) ne $gen_codehash->( $loader_code->() ) )
@@ -118,19 +113,18 @@ sub import {
                 }
                 return;
             }->();
-            $croak->("cannot find $module") unless defined $file;
+            die "cannot find $module" unless defined $file;
 
             my $bootname = "boot_$module";
             $bootname =~ s/\W/_/g;
             local @DynaLoader::dl_require_symbols = ($bootname);
 
             my $libref = $dl_load_file->( $file, 0 ) or do {
-                $croak->(
-                    "Can't load '$file' for module $module: " . $dl_error->() );
+                die "Can't load '$file' for module $module: " . $dl_error->();
             };
 
             my $boot_symbol_ref = $dl_find_symbol->( $libref, $bootname ) or do {
-                $croak->("Can't find '$bootname' symbol in $file\n");
+                die "Can't find '$bootname' symbol in $file\n";
             };
 
           boot:
