@@ -9,7 +9,7 @@ my @TRUSTED;
 BEGIN {
     @TRUSTED = (
         # core modules
-        qw(XSLoader List::Util Opcode Math::BigInt::FastCalc Time::HiRes Data::Dumper),
+        qw(XSLoader List::Util Opcode Math::BigInt::FastCalc Time::HiRes Data::Dumper MIME::Base64),
 
         # popular modules
         qw(Digest::SHA1 JSON::XS),
