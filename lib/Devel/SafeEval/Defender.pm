@@ -7,9 +7,14 @@ use Scalar::Util ();
 my @TRUSTED;
 BEGIN {
     @TRUSTED = (
-        qw(XSLoader List::Util Opcode Math::BigInt::FastCalc Time::HiRes Data::Dumper), # core modules
+        # core modules
+        qw(XSLoader List::Util Opcode Math::BigInt::FastCalc Time::HiRes Data::Dumper),
 
-        qw(Moose Class::MOP Class::C3::XS Devel::GlobalDestruction Sub::Name B), # Moose related stuff
+        # popular modules
+        qw(Digest::SHA1),
+
+        # Moose related stuff
+        qw(Moose Class::MOP Class::C3::XS Devel::GlobalDestruction Sub::Name B),
 
         qw(threads), # ithreads
 
