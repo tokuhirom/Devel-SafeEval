@@ -120,8 +120,7 @@ sub import {
             }
 
             # work with static linking too
-            my $b = "$module\::bootstrap";
-            if (defined &$b) {
+            if (defined *{"${module}::bootstrap"}{CODE}) {
                 die "bootstrap method is not allowed";
             }
 
