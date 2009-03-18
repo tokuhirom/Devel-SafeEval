@@ -39,6 +39,8 @@ sub import {
         die 'you should not call boot_DynaLoader twice';
     };
 
+    package DB; # deny eval-DB.
+
     %ENV = (PATH => '', PERL5LIB => $ENV{PERL5LIB});
 
     {
@@ -81,7 +83,6 @@ sub import {
         local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
         $loader = sub ($) {
-            package DB; # deny eval-DB.
 
             if (tied @_) {
                 die 'do not tie @_';
