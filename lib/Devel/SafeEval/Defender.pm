@@ -135,6 +135,10 @@ sub import {
                 die "bootstrap method is not allowed";
             }
 
+            if (tied ${"${module}::VERSION"}) {
+                die "don't tie \$module";
+            }
+
             my @modparts = split( /::/, $module );
             my $modfname = $modparts[-1];
 
