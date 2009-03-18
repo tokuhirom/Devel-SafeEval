@@ -84,7 +84,6 @@ sub import {
                 die "you changed DynaLoader or XSLoader or DB?";
             }
 
-            my $module = $_[0];
             if (tied @INC) {
                 die 'do not tie @INC';
             }
@@ -102,9 +101,12 @@ sub import {
             if (tied %INC) {
                 die 'do not tie %INC';
             }
-            if (tied $module) {
+            if (tied $_[0]) {
+                # this check before assign
                 die "tied object is not allowed for module name";
             }
+
+            my $module = $_[0];
             if (ref $module ne '') {
                 die 'ref module name is not allowed';
             }

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 22;
+use Test::More tests => 23;
 use Devel::SafeEval;
 
 like(
@@ -305,3 +305,23 @@ like(
     qr{do not ref \$INC\Q[n]},
     'deny ref $INC[0]'
 );
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            {
+                package F;
+                use base 'Tie::Scalar';
+                sub TIESCALAR { bless {} }
+                sub FETCH { Carp::confess() }
+            }
+            my $x;
+            tie $x, 'F';
+            DynaLoader::bootstrap($x);
+...
+    ),
+    qr{tied object is not allowed for module name},
+    'deny tie $module(kazuho++)'
+);
+
