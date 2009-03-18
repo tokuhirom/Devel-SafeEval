@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 18;
+use Test::More tests => 20;
 use Devel::SafeEval;
 
 like(
@@ -224,4 +224,50 @@ unlike(
     ),
     qr{dl_install_xsub},
     'deny tie $module(kazuho++)'
+);
+
+unlike(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            {
+                package DB;
+                sub f { warn 'orz';undef }
+            }
+            {
+                package F;
+                use base 'Tie::Hash';
+                sub TIEHASH { bless {} }
+                sub FIRSTKEY { goto &DB::f }
+                sub NEXTKEY { goto &DB::f }
+            }
+            tie %DB::, 'F';
+            DynaLoader::bootstrap('Encode');
+...
+    ),
+    qr{orz},
+    'deny tie %DB'
+);
+
+unlike(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            {
+                package DB;
+                sub f { warn 'orz';undef }
+            }
+            {
+                package F;
+                use base 'Tie::Hash';
+                sub TIEHASH { bless {} }
+                sub FIRSTKEY { goto &DB::f }
+                sub NEXTKEY { goto &DB::f }
+            }
+            tie %DynaLoader::, 'F';
+            DynaLoader::bootstrap('Encode');
+...
+    ),
+    qr{orz},
+    'deny tie %DynaLoader'
 );

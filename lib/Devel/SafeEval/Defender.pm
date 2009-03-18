@@ -71,6 +71,13 @@ sub import {
         local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
         my $loader = sub {
+            if (tied %DB::) {
+                die 'do not tie %DB::';
+            }
+            if (tied %DynaLoader::) {
+                die 'do not tie %DB::';
+            }
+
             # check the DB first
             if ( $gen_codehash->(@code) ne $gen_codehash->( $loader_code->() ) )
             {
