@@ -92,6 +92,9 @@ sub import {
                 if (tied $_) {
                     die 'do not tie $INC[n]';
                 }
+                if (ref $_ ne '') {
+                    die 'do not ref $INC[n]';
+                }
             }
             if (tied @INC) {
                 die 'do not tie @INC';

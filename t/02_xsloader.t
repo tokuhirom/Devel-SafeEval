@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 21;
+use Test::More tests => 22;
 use Devel::SafeEval;
 
 like(
@@ -73,7 +73,7 @@ like(
 like(
     Devel::SafeEval->run(
         timeout => 1,
-        code    => 'BEGIN{ unshift @INC, sub { };} use Math::BigInt::FastCalc; print "OK"',
+        code    => 'BEGIN{ unshift @INC, "a";} use Math::BigInt::FastCalc; print "OK"',
     ),
     qr{do not modify \@INC},
     'disallow modify @INC'
@@ -288,4 +288,20 @@ like(
     ),
     qr{do not tie \$INC},
     'deny tie $INC[0]'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            {
+                package F;
+                use overload q{""} => sub { Carp::croak "HOGE" };
+            }
+            unshift @INC, bless({}, 'F');
+            DynaLoader::bootstrap('Encode');
+...
+    ),
+    qr{do not ref \$INC\Q[n]},
+    'deny ref $INC[0]'
 );
