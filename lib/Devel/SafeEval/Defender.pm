@@ -73,6 +73,9 @@ sub import {
         # code taken from DynaLoader & XSLoader
         my $loader = sub {
             my ( $module, ) = @_;
+            if (tied @INC) {
+                die 'do not tie @INC';
+            }
             if (ref $module ne '') {
                 die 'ref module name is not allowed';
             }

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 16;
 use Devel::SafeEval;
 
 like(
@@ -164,5 +164,24 @@ like(
     ),
     qr{you changed DynaLoader or XSLoader or DB},
     'deny DB'
+);
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...'
+            {
+                package f;
+                use base 'Tie::Array';
+                sub TIEARRAY { bless {} }
+                sub FETCHSIZE { 3 }
+                sub FETCH { 1 }
+            }
+            tie @INC, 'f';
+            DynaLoader::bootstrap('Encode');
+...
+    ),
+    qr{do not tie \@INC},
+    'deny tie @INC(miyagawa++)'
 );
 
