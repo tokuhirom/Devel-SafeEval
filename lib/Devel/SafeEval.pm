@@ -77,6 +77,7 @@ sub _body {
             fttext ftbinary
             sysread syswrite
             bind connect listen accept shutdown gsockopt getsockname
+            tie
         };
         my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open,:sys_db,:filesys_open,:others,dofile,flock,ioctl,reset,dbstate,:dangerous,} . $deny);
         local $SIG{ALRM} = sub { die "timeout" };
