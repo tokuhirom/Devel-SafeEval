@@ -2,7 +2,7 @@ package Devel::SafeEval::Defender;
 use strict;
 use warnings;
 use Carp ();
-use Scalar::Util 'refaddr';
+use Scalar::Util ();
 use Digest::MD5 ();
 
 my @TRUSTED;
@@ -32,6 +32,7 @@ sub import {
     my $croak   = *{"Carp::croak"}{CODE};
     my $carp    = *{"Carp::carp"}{CODE};
     my $confess = *{"Carp::confess"}{CODE};
+    my $refaddr = *Scalar::Util::refaddr{CODE};
     *DynaLoader::boot_DynaLoader = sub {
         $croak->('you should not call boot_DynaLoader twice');
         die 'you break a Carp::croak?';
@@ -54,7 +55,7 @@ sub import {
         my %trusted = map { $_ => 1 } @TRUSTED;
         my $TRUE_INC = join "\0", @INC;
         my $gen_codehash = sub {
-            join("\0", map { refaddr( $_ ) } @_);
+            join("\0", map { $refaddr->( $_ ) } @_);
         };
         my $loader_code = sub {
             my @code = (
