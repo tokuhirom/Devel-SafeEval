@@ -11,7 +11,7 @@ BEGIN {
         qw(XSLoader List::Util Opcode Math::BigInt::FastCalc Time::HiRes Data::Dumper),
 
         # popular modules
-        qw(Digest::SHA1),
+        qw(Digest::SHA1 JSON::XS),
 
         # Moose related stuff
         qw(Moose Class::MOP Class::C3::XS Devel::GlobalDestruction Sub::Name B),
