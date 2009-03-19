@@ -78,7 +78,7 @@ sub _body {
             sysread syswrite
             bind connect listen accept shutdown gsockopt getsockname
         };
-        my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open,:sys_db,:filesys_open,:others,dofile,flock,ioctl,reset,dbstate,:dangerous,} . $deny);
+        my @args = (q{-M-ops=:subprocess,:filesys_write,exec,kill,chdir,open,:sys_db,:filesys_open,:others,flock,ioctl,reset,dbstate,:dangerous,} . $deny);
         local $SIG{ALRM} = sub { die "timeout" };
         alarm $args{timeout};
         $pid = open3( my ( $wfh, $rfh, $efh ),
