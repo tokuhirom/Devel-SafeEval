@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 25;
+use Test::More tests => 26;
 use Devel::SafeEval;
 
 like(
@@ -374,4 +374,19 @@ like(
     ),
     qr{hoge},
     'deny namespace hack @_(kazuho++)'
+);
+
+
+like(
+    Devel::SafeEval->run(
+        timeout => 1,
+        code    => <<'...',
+            use Encode;
+            DynaLoader::dl_unload_file($_) for @DynaLoader::dl_librefs;
+            encode('euc-jp', 'abcde');
+            print 'ok';
+...
+    ),
+    qr{do not call me},
+    'hacked by kazuho++'
 );

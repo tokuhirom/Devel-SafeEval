@@ -35,9 +35,6 @@ sub import {
     require XSLoader;
     require Config;
     my $refaddr = *Scalar::Util::refaddr{CODE};
-    *DynaLoader::boot_DynaLoader = sub {
-        die 'you should not call boot_DynaLoader twice';
-    };
 
     package DB; # deny eval-DB.
 
@@ -195,7 +192,6 @@ sub import {
                 die "Can't find '$bootname' symbol in $file\n";
             };
 
-          boot:
             my $xs = $dl_install_xsub->( "${module}::bootstrap", $boot_symbol_ref,
                 $file );
 
@@ -207,13 +203,12 @@ sub import {
         *DynaLoader::bootstrap = $wrapper;
 
         my $fake = sub { die "do not call me" };
-        *DynaLoader::bootstrap_inherit = $fake;
-        *DynaLoader::dl_error          = $fake;
-        *DynaLoader::dl_find_symbol    = $fake;
-        *DynaLoader::dl_findfile       = $fake;
-        *DynaLoader::dl_install_xsub   = $fake;
-        *DynaLoader::dl_load_file      = $fake;
-        *DynaLoader::dl_undef_symbols  = $fake;
+        for (grep !/^bootstrap$/, %DynaLoader::) {
+            *{"DynaLoader::$_"} = $fake;
+        }
+        for (grep !/^load$/, %XSLoader::) {
+            *{"XSLoader::$_"} = $fake;
+        }
 
         @code = $loader_code->();
     }

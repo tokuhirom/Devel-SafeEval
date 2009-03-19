@@ -94,7 +94,7 @@ like(
         timeout => 1,
         code    => 'DynaLoader::boot_DynaLoader()',
     ),
-    qr{you should not call},
+    qr{do not call me},
     'DynaLoader::boot_DynaLoader'
 );
 
@@ -103,7 +103,7 @@ like(
         timeout => 1,
         code    => 'DynaLoader::boot_DynaLoader()',
     ),
-    qr{you should not call},
+    qr{do not call me},
     'DynaLoader::boot_DynaLoader'
 );
 
