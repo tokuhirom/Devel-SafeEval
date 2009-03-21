@@ -40,6 +40,8 @@ sub import {
 
     %ENV = (PATH => '', PERL5LIB => $ENV{PERL5LIB});
 
+    XSLoader::load('Devel::SafeEval');
+
     {
         # use kazuho method
         # http://d.hatena.ne.jp/kazuhooku/20090316/1237205628
@@ -67,10 +69,16 @@ sub import {
 
         my $dl_error          = \&DynaLoader::dl_error;
         my $dl_find_symbol    = \&DynaLoader::dl_find_symbol;
-        my $dl_findfile       = \&DynaLoader::dl_findfile;
         my $dl_install_xsub   = \&DynaLoader::dl_install_xsub;
         my $dl_load_file      = \&DynaLoader::dl_load_file;
-        my $dl_undef_symbols  = \&DynaLoader::dl_undef_symbols;
+        Devel::SafeEval::Defender::setup(
+            {
+                dl_error          => \&DynaLoader::dl_error,
+                dl_find_symbol    => \&DynaLoader::dl_find_symbol,
+                dl_install_xsub   => \&DynaLoader::dl_install_xsub,
+                dl_load_file      => \&DynaLoader::dl_load_file,
+            }
+        );
 
         my $dlext = $Config::Config{'dlext'};
 
@@ -95,7 +103,6 @@ sub import {
         local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
         $loader = sub ($) {
-
             if (tied @_) {
                 die 'do not tie @_';
             }
@@ -188,14 +195,17 @@ sub import {
                 die "Can't load '$file' for module $module: " . $dl_error->();
             };
 
-            my $boot_symbol_ref = $dl_find_symbol->( $libref, $bootname ) or do {
-                die "Can't find '$bootname' symbol in $file\n";
-            };
+          # my $boot_symbol_ref = $dl_find_symbol->( $libref, $bootname ) or do {
+          #     die "Can't find '$bootname' symbol in $file\n";
+          # };
+# load(SV *module, SV*libref, SV*bootname, SV*filename)
 
-            my $xs = $dl_install_xsub->( "${module}::bootstrap", $boot_symbol_ref,
-                $file );
+          # my $xs = $dl_install_xsub->( "${module}::bootstrap", $boot_symbol_ref,
+          #     $file );
+            Devel::SafeEval::Defender::load("${module}::bootstrap", $libref, $bootname, $file);
 
-            return $xs;
+
+          # return $xs;
         };
         undef *XSLoader::load;
         undef *DynaLoader::bootstrap;
