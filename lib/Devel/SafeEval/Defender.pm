@@ -43,7 +43,7 @@ sub import {
     XSLoader::load('Devel::SafeEval');
 
     {
-        # use kazuho method
+        # i don't use kazuho method
         # http://d.hatena.ne.jp/kazuhooku/20090316/1237205628
 
         my $loader;
@@ -67,10 +67,6 @@ sub import {
             alarm $alarm;
         };
 
-        my $dl_error          = \&DynaLoader::dl_error;
-        my $dl_find_symbol    = \&DynaLoader::dl_find_symbol;
-        my $dl_install_xsub   = \&DynaLoader::dl_install_xsub;
-        my $dl_load_file      = \&DynaLoader::dl_load_file;
         Devel::SafeEval::Defender::setup(
             {
                 dl_error          => \&DynaLoader::dl_error,
@@ -84,22 +80,7 @@ sub import {
 
         my %trusted = map { $_ => 1 } @TRUSTED;
         my $TRUE_INC = join "\0", @INC;
-        my $gen_codehash = sub {
-            join("\0", map { $refaddr->( $_ ) } @_);
-        };
         no warnings 'once';
-        my $loader_code = sub {
-            my @code = (
-                grep { $_ }
-                map { *{"DynaLoader::$_"}{CODE} }
-                sort grep /^dl_/,
-                keys %{"DynaLoader::"}
-            );
-            push @code, grep { $_ } map { *{"DB::$_"}{CODE} } sort %{"DB::"};
-            push @code, *{"XSLoader::load"}{CODE};
-            @code;
-        };
-        my @code; # predefine
         local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
         $loader = sub ($) {
@@ -111,12 +92,6 @@ sub import {
             }
             if (tied %DynaLoader::) {
                 die 'do not tie %DB::';
-            }
-
-            # check the DB first
-            if ( $gen_codehash->(@code) ne $gen_codehash->( $loader_code->() ) )
-            {
-                die "you changed DynaLoader or XSLoader or DB?";
             }
 
             if (tied @INC) {
@@ -191,21 +166,7 @@ sub import {
             $bootname =~ s/\W/_/g;
             local @DynaLoader::dl_require_symbols = ($bootname);
 
-            my $libref = $dl_load_file->( $file, 0 ) or do {
-                die "Can't load '$file' for module $module: " . $dl_error->();
-            };
-
-          # my $boot_symbol_ref = $dl_find_symbol->( $libref, $bootname ) or do {
-          #     die "Can't find '$bootname' symbol in $file\n";
-          # };
-# load(SV *module, SV*libref, SV*bootname, SV*filename)
-
-          # my $xs = $dl_install_xsub->( "${module}::bootstrap", $boot_symbol_ref,
-          #     $file );
-            Devel::SafeEval::Defender::load("${module}::bootstrap", $libref, $bootname, $file);
-
-
-          # return $xs;
+            Devel::SafeEval::Defender::load("${module}::bootstrap", $bootname, $file);
         };
         undef *XSLoader::load;
         undef *DynaLoader::bootstrap;
@@ -219,8 +180,6 @@ sub import {
         for (grep !/^load$/, %XSLoader::) {
             *{"XSLoader::$_"} = $fake;
         }
-
-        @code = $loader_code->();
     }
 }
 

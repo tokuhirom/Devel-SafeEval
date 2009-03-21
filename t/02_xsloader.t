@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 26;
+use Test::More tests => 24;
 use Devel::SafeEval;
 
 like(
@@ -79,15 +79,6 @@ like(
     'disallow modify @INC'
 );
 
-like(
-    Devel::SafeEval->run(
-        timeout => 1,
-        code    => 'BEGIN{ *XSLoader::load = sub { }} use Math::BigInt::FastCalc; print "OK"',
-    ),
-    qr{you changed DynaLoader or XSLoader},
-    'disallow modify XSLoader/DynaLoader'
-);
-
 unlike(
     Devel::SafeEval->run(
         timeout => 1,
@@ -104,18 +95,6 @@ unlike(
     ),
     qr{key='[a-zA-Z0-9]+'},
     'yappo attack'
-);
-
-like(
-    Devel::SafeEval->run(
-        timeout => 1,
-        code    => <<'...'
-            sub DB::DB { }
-            DynaLoader::bootstrap('Encode');
-...
-    ),
-    qr{you changed DynaLoader or XSLoader or DB},
-    'deny debugger'
 );
 
 like(
@@ -152,18 +131,6 @@ like(
     ),
     qr{do not ref \$_\[n\]},
     'deny miyagawa'
-);
-
-like(
-    Devel::SafeEval->run(
-        timeout => 1,
-        code    => <<'...'
-            sub DB::foo { }
-            DynaLoader::bootstrap('Encode');
-...
-    ),
-    qr{you changed DynaLoader or XSLoader or DB},
-    'deny DB'
 );
 
 like(

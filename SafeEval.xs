@@ -28,11 +28,43 @@ CODE:
     c = _c;
 
 CV*
-load(SV *module, SV*libref, SV*bootname, SV*filename)
+load(SV *module, SV*bootname, SV*filename)
 CODE:
     dSP;
 
     SV * boot_symref;
+    SV * libref;
+
+    // dl_load_file
+    {
+        /*
+        my $libref = $dl_load_file->( $file, 0 ) or do {
+            die "Can't load '$file' for module $module: " . $dl_error->();
+        };
+        */
+        SV * dl_load_file;
+        GET_CV(dl_load_file, "dl_load_file");
+        {
+            ENTER;
+            SAVETMPS;
+
+            PUSHMARK(sp);
+            XPUSHs(filename);
+            XPUSHs(sv_2mortal(newSViv(0)));
+            PUTBACK;
+
+            call_sv((SV*)dl_load_file, G_SCALAR);
+            SPAGAIN;
+            SV* ret = POPs;
+            SvREFCNT_inc(ret);
+            assert(ret);
+            libref = ret;
+            PUTBACK;
+
+            FREETMPS;
+            LEAVE;
+        }
+    }
 
     // dl_find_symbol
     {
@@ -41,7 +73,6 @@ CODE:
             die "Can't find '$bootname' symbol in $file\n";
         };
         */
-       // boot_symref = POPs;
         SV * dl_find_symbol;
         GET_CV(dl_find_symbol, "dl_find_symbol");
         {
@@ -95,8 +126,6 @@ CODE:
             LEAVE;
         }
     }
-    // Perl_croak(aTHX_ "ahhhh?");
-    // Perl_croak(aTHX_ module);
 OUTPUT:
     RETVAL
 
