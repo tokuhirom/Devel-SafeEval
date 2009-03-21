@@ -32,6 +32,8 @@ sub told {
         "reloaded";
     } elsif ($body =~ /^!make$/) {
        `make`;
+    } elsif ($body =~ /^!Makefile\.PL$/) {
+       `perl Makefile.PL`;
     } elsif ($body =~ /^!cpan-mkmyconfig$/) {
         require CPAN::FirstTime;
         require CPAN;
