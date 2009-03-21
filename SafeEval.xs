@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 static HV * c;
+Perl_ppaddr_t orig_unpack;
 
 #define GET_CV(assigned_to, name) do { \
         SV ** xsubref = hv_fetch(c, name, strlen(name), 0); \
@@ -19,12 +20,22 @@ static HV * c;
         assert(SvTYPE(*xsub) == SVt_PVCV); \
     } while (0)
 
+OP * safeeval_unpack_wrapper(pTHX) {
+    dXSARGS;
+    if (SvPOK(ST(0)) && strEQ(SvPV_nolen(ST(0)), "p")) {
+        Perl_croak(aTHX_ "unpack 'p' is not allowed");
+    }
+    orig_unpack(aTHX);
+}
+
 MODULE = Devel::SafeEval  PACKAGE = Devel::SafeEval::Defender
 
 void
 setup(HV* _c)
 CODE:
     SvREFCNT_inc(_c);
+    orig_unpack = PL_ppaddr[OP_UNPACK];
+    PL_ppaddr[OP_UNPACK] = safeeval_unpack_wrapper;
     c = _c;
 
 CV*

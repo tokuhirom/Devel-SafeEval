@@ -98,7 +98,7 @@ sub _body {
     } else {
         if (WIFSIGNALED($?)) {
             my $sig = WTERMSIG($?);
-            return 'signal received: ' . [split / /, $Config{sig_name}]->[11];
+            return $stdout . "\n" . 'signal received: ' . [split / /, $Config{sig_name}]->[11];
         } else {
             return $stdout;
         }
