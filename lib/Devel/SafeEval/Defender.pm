@@ -67,16 +67,43 @@ sub import {
             alarm $alarm;
         };
 
+        my $dlext = $Config::Config{'dlext'};
+        my $setup_mod = sub {
+            my $module = shift;
+            my @modparts = split( /::/, $module );
+            my $modfname = $modparts[-1];
+
+            my $modpname   = join( '/', @modparts );
+            my $file = sub {;
+                for my $path (@INC) {
+                    my $dir = "$path/auto/$modpname";
+                    next unless -d $dir;
+                    my $try = "$dir/$modfname.${dlext}";
+                    if (-f $try) {
+                        return $try;
+                    }
+                }
+                return;
+            }->();
+            die "cannot find $module" unless defined $file;
+
+            my $bootname = "boot_$module";
+            $bootname =~ s/\W/_/g;
+            undef @DynaLoader::dl_require_symbols;
+            @DynaLoader::dl_require_symbols = ($bootname);
+            return ($file, $bootname);
+        };
+
         Devel::SafeEval::Defender::setup(
             {
                 dl_error          => \&DynaLoader::dl_error,
                 dl_find_symbol    => \&DynaLoader::dl_find_symbol,
                 dl_install_xsub   => \&DynaLoader::dl_install_xsub,
                 dl_load_file      => \&DynaLoader::dl_load_file,
+                setup_mod         => $setup_mod,
             }
         );
-
-        my $dlext = $Config::Config{'dlext'};
+        undef *Devel::SafeEval::Defender::setup;
 
         my %trusted = map { $_ => 1 } @TRUSTED;
         my $TRUE_INC = join "\0", @INC;
@@ -145,28 +172,7 @@ sub import {
                 die "don't ref \$VERSION";
             }
 
-            my @modparts = split( /::/, $module );
-            my $modfname = $modparts[-1];
-
-            my $modpname   = join( '/', @modparts );
-            my $file = sub {;
-                for my $path (@INC) {
-                    my $dir = "$path/auto/$modpname";
-                    next unless -d $dir;
-                    my $try = "$dir/$modfname.${dlext}";
-                    if (-f $try) {
-                        return $try;
-                    }
-                }
-                return;
-            }->();
-            die "cannot find $module" unless defined $file;
-
-            my $bootname = "boot_$module";
-            $bootname =~ s/\W/_/g;
-            local @DynaLoader::dl_require_symbols = ($bootname);
-
-            Devel::SafeEval::Defender::load("${module}::bootstrap", $bootname, $file);
+            Devel::SafeEval::Defender::load($module, "${module}::bootstrap");
         };
         undef *XSLoader::load;
         undef *DynaLoader::bootstrap;

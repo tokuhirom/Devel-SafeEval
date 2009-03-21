@@ -28,12 +28,50 @@ CODE:
     c = _c;
 
 CV*
-load(SV *module, SV*bootname, SV*filename)
+load(SV *module, SV*bootstrap_method)
 CODE:
     dSP;
 
     SV * boot_symref;
     SV * libref;
+    SV * filename;
+    SV * bootname;
+
+    // setup_mod
+    {
+        /*
+        my ($filename, $bootname) = $setup_mod->( $module );
+        */
+        SV * setup_mod;
+        GET_CV(setup_mod, "setup_mod");
+        {
+            ENTER;
+            SAVETMPS;
+
+            PUSHMARK(sp);
+            XPUSHs(module);
+            PUTBACK;
+
+            call_sv((SV*)setup_mod, G_ARRAY);
+            SPAGAIN;
+            {
+                SV* ret = POPs;
+                SvREFCNT_inc(ret);
+                assert(ret);
+                bootname = ret;
+            }
+            {
+                SV* ret = POPs;
+                SvREFCNT_inc(ret);
+                assert(ret);
+                filename = ret;
+            }
+            PUTBACK;
+
+            FREETMPS;
+            LEAVE;
+        }
+    }
 
     // dl_load_file
     {
@@ -110,7 +148,7 @@ CODE:
             SAVETMPS;
 
             PUSHMARK(sp);
-            XPUSHs(module); //perl_name
+            XPUSHs(bootstrap_method); //perl_name
             XPUSHs(boot_symref);
             XPUSHs(filename);
             PUTBACK;
