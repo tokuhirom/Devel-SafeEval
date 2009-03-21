@@ -5,6 +5,7 @@ use File::Spec;
 use FindBin;
 use local::lib '/home/dankogai/locallib/';
 use lib File::Spec->catfile($FindBin::Bin, 'lib');
+use blib;
 use POE;
 use POE::Component::IRC;
 use Devel::SafeEval;
