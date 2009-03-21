@@ -73,6 +73,19 @@ CODE:
         }
     }
 
+    // trusted check
+    {
+        SV ** trusted_ref = hv_fetch(c, "trusted", strlen("trusted"), 0);
+        assert(trusted_ref);
+        assert(SvROK(*trusted));
+        assert(SvTYPE(SvRV(*trusted)) == SVt_PVHV);
+        HV * trusted = (HV*)SvRV(*trusted_ref);
+        bool is_trusted = hv_exists(trusted, (char*)SvPV_nolen(module), sv_len(module));
+        if (!is_trusted) {
+            Perl_croak(aTHX_ "untrusted module %s", SvPV_nolen(module));
+        }
+    }
+
     // dl_load_file
     {
         /*

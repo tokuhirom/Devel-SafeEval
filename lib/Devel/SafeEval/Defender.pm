@@ -101,14 +101,13 @@ sub import {
                 dl_install_xsub   => \&DynaLoader::dl_install_xsub,
                 dl_load_file      => \&DynaLoader::dl_load_file,
                 setup_mod         => $setup_mod,
+                trusted           => +{ map { $_ => 1 } @TRUSTED },
             }
         );
         undef *Devel::SafeEval::Defender::setup;
 
-        my %trusted = map { $_ => 1 } @TRUSTED;
         my $TRUE_INC = join "\0", @INC;
         no warnings 'once';
-        local $^P; # defence from debugger
         # code taken from DynaLoader & XSLoader
         $loader = sub ($) {
             if (tied @_) {
@@ -155,7 +154,6 @@ sub import {
             unless (defined $module) {
                 die "Usage: DynaLoader::bootstrap(module)";
             }
-            die "no xs(${module} is not trusted)" unless $trusted{$module};
             if ( $TRUE_INC ne join( "\0", @INC ) ) {
                 die "do not modify \@INC";
             }

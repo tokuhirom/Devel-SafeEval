@@ -85,7 +85,7 @@ like(
         timeout => 1,
         code    => 'use Devel::Peek',
     ),
-    qr{no xs},
+    qr{untrusted module Devel::Peek},
     'Devel::Peek is dangerous...(that can detect address)'
 );
 
