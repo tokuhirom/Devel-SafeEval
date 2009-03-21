@@ -30,6 +30,8 @@ OP * safeeval_unpack_wrapper(pTHX) {
 
 MODULE = Devel::SafeEval  PACKAGE = Devel::SafeEval::Defender
 
+PROTOTYPES: DISABLE
+
 void
 setup(HV* _c)
 CODE:
