@@ -30,6 +30,8 @@ sub told {
         require Module::Reload;
         Module::Reload->check;
         "reloaded";
+    } elsif ($body =~ /^!make$/) {
+       `make`;
     } elsif ($body =~ /^!cpan-mkmyconfig$/) {
         require CPAN::FirstTime;
         require CPAN;
