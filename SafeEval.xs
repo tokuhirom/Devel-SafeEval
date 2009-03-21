@@ -21,11 +21,11 @@ Perl_ppaddr_t orig_unpack;
     } while (0)
 
 OP * safeeval_unpack_wrapper(pTHX) {
-    dXSARGS;
+    dAXMARK;
     if (SvPOK(ST(0)) && strEQ(SvPV_nolen(ST(0)), "p")) {
         Perl_croak(aTHX_ "unpack 'p' is not allowed");
     }
-    orig_unpack(aTHX);
+    return orig_unpack(aTHX);
 }
 
 MODULE = Devel::SafeEval  PACKAGE = Devel::SafeEval::Defender
@@ -48,7 +48,7 @@ CODE:
     SV * filename;
     SV * bootname;
 
-    // setup_mod
+    /* setup_mod */
     {
         /*
         my ($filename, $bootname) = $setup_mod->( $module );
@@ -84,7 +84,7 @@ CODE:
         }
     }
 
-    // trusted check
+    /* trusted check */
     {
         SV ** trusted_ref = hv_fetch(c, "trusted", strlen("trusted"), 0);
         assert(trusted_ref);
@@ -97,7 +97,7 @@ CODE:
         }
     }
 
-    // dl_load_file
+    /* dl_load_file */
     {
         /*
         my $libref = $dl_load_file->( $file, 0 ) or do {
@@ -128,7 +128,7 @@ CODE:
         }
     }
 
-    // dl_find_symbol
+    /* dl_find_symbol */
     {
         /*
         my $boot_symbol_ref = $dl_find_symbol->( $libref, $bootname ) or do {
@@ -159,7 +159,7 @@ CODE:
         }
     }
 
-    // dl_install_xsub
+    /* dl_install_xsub */
     {
         /*
         my $xs = $dl_install_xsub->( "${module}::bootstrap", $boot_symbol_ref,
@@ -172,7 +172,7 @@ CODE:
             SAVETMPS;
 
             PUSHMARK(sp);
-            XPUSHs(bootstrap_method); //perl_name
+            XPUSHs(bootstrap_method);
             XPUSHs(boot_symref);
             XPUSHs(filename);
             PUTBACK;
@@ -181,7 +181,8 @@ CODE:
             SPAGAIN;
             SV* retref = POPs;
             SV*ret = SvRV(retref);
-            RETVAL = ret;
+            assert(SvTYPE(ret) == SVt_PVCV);
+            RETVAL = (CV*)ret;
             PUTBACK;
 
             FREETMPS;

@@ -6,9 +6,11 @@ requires 'Sys::Protect';
 requires 'IPC::Open3';
 requires 'BSD::Resource';
 requires 'Params::Validate';
+my $cflags = $ENV{USER} eq 'tokuhirom' ? '-Wall --std=c89' : '';
 can_cc or die "This module requires a C compiler";
 makemaker_args(
     OBJECT => '$(O_FILES)',
+    CCFLAGS => $cflags,
     clean => {
         FILES => q{
             *.stackdump
