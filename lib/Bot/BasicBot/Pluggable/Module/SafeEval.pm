@@ -31,7 +31,7 @@ sub told {
         Module::Reload->check;
         "reloaded";
     } elsif ($body =~ /^!make$/) {
-       `make`;
+       `make 2>&1`;
     } elsif ($body =~ /^!Makefile\.PL$/) {
        `perl Makefile.PL`;
     } elsif ($body =~ /^!cpan-mkmyconfig$/) {
