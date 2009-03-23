@@ -12,12 +12,20 @@ extern "C" {
 static HV * c;
 Perl_ppaddr_t orig_unpack;
 
+#define ASSERT(x) do {\
+        if (!(x)) { \
+            Perl_croak(aTHX_ "oops..."); \
+        } } while (0)
+
 #define GET_CV(assigned_to, name) do { \
-        SV ** xsubref = hv_fetch(c, name, strlen(name), 0); \
-        assert(xsubref); \
-        assigned_to = SvRV(*xsubref); \
-        assert(xsub); \
-        assert(SvTYPE(*xsub) == SVt_PVCV); \
+        SV ** _xsubref = hv_fetch(c, name, strlen(name), 0); \
+        ASSERT(_xsubref); \
+        ASSERT(SvROK(*_xsubref)); \
+        assigned_to = SvRV(*_xsubref); \
+        ASSERT(assigned_to); \
+        if (!SvTYPE(assigned_to) == SVt_PVCV) { \
+            Perl_croak(aTHX_ "oops..."); \
+        } \
     } while (0)
 
 OP * safeeval_unpack_wrapper(pTHX) {
@@ -78,13 +86,13 @@ CODE:
             {
                 SV* ret = POPs;
                 SvREFCNT_inc(ret);
-                assert(ret);
+                ASSERT(ret);
                 bootname = ret;
             }
             {
                 SV* ret = POPs;
                 SvREFCNT_inc(ret);
-                assert(ret);
+                ASSERT(ret);
                 filename = ret;
             }
             PUTBACK;
@@ -97,9 +105,9 @@ CODE:
     /* trusted check */
     {
         SV ** trusted_ref = hv_fetch(c, "trusted", strlen("trusted"), 0);
-        assert(trusted_ref);
-        assert(SvROK(*trusted));
-        assert(SvTYPE(SvRV(*trusted)) == SVt_PVHV);
+        ASSERT(trusted_ref);
+        ASSERT(SvROK(*trusted_ref));
+        ASSERT(SvTYPE(SvRV(*trusted_ref)) == SVt_PVHV);
         HV * trusted = (HV*)SvRV(*trusted_ref);
         bool is_trusted = hv_exists(trusted, (char*)SvPV_nolen(module), sv_len(module));
         if (!is_trusted) {
@@ -129,7 +137,7 @@ CODE:
             SPAGAIN;
             SV* ret = POPs;
             SvREFCNT_inc(ret);
-            assert(ret);
+            ASSERT(ret);
             libref = ret;
             PUTBACK;
 
@@ -160,7 +168,7 @@ CODE:
             SPAGAIN;
             SV* ret = POPs;
             SvREFCNT_inc(ret);
-            assert(ret);
+            ASSERT(ret);
             boot_symref = ret;
             PUTBACK;
 
@@ -191,7 +199,7 @@ CODE:
             SPAGAIN;
             SV* retref = POPs;
             SV*ret = SvRV(retref);
-            assert(SvTYPE(ret) == SVt_PVCV);
+            ASSERT(SvTYPE(ret) == SVt_PVCV);
             RETVAL = (CV*)ret;
             PUTBACK;
 
