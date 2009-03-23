@@ -59,6 +59,7 @@ load(const char*_module)
 CODE:
     dSP;
     ASSERT(items == 1);
+    ASSERT(strlen(_module) > 0);
 
     SV * boot_symref;
     SV * libref;
