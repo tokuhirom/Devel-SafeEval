@@ -22,7 +22,7 @@ Perl_ppaddr_t orig_unpack;
 
 OP * safeeval_unpack_wrapper(pTHX) {
     dAXMARK;
-    if (SvPOK(ST(0)) && strEQ(SvPV_nolen(ST(0)), "p")) {
+    if (SvPOK(ST(0)) && strchr(SvPV_nolen(ST(0)), 'p')) {
         Perl_croak(aTHX_ "unpack 'p' is not allowed");
     }
     return orig_unpack(aTHX);
