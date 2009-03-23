@@ -22,10 +22,16 @@ Perl_ppaddr_t orig_unpack;
 
 OP * safeeval_unpack_wrapper(pTHX) {
     dAXMARK;
-    if (SvPOK(ST(0)) && strchr(SvPV_nolen(ST(0)), 'p')) {
-        Perl_croak(aTHX_ "unpack 'p' is not allowed");
+    if (SvPOK(ST(0))) {
+        const char* buf = SvPV_nolen(ST(0));
+        if (strchr(buf, 'p')) {
+            Perl_croak(aTHX_ "unpack 'p' is not allowed");
+        }
+        ST(0) = sv_2mortal(newSVpv(buf, strlen(buf)));
+        return orig_unpack(aTHX);
+    } else {
+        Perl_croak(aTHX_ "invalid type");
     }
-    return orig_unpack(aTHX);
 }
 
 MODULE = Devel::SafeEval  PACKAGE = Devel::SafeEval::Defender
