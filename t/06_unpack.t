@@ -2,7 +2,7 @@ use Test::Base;
 use Devel::SafeEval;
 
 plan skip_all => 'this test requires JSON::XS' unless eval 'use JSON::XS; 1;';
-plan tests => 4;
+plan tests => 7;
 
 filters {
     input => [qw/safeeval/]
@@ -40,4 +40,14 @@ my $u = unpack('u', '%:&5L;&\`');
 print "unpack='$u'";
 --- test
 like $res, qr{unpack='hello'};
+
+
+=== 
+--- input
+unpack 'p*', 0xdeadbeef;
+print 'ok';
+--- test
+like $res, qr{unpack 'p' is not allowed};
+unlike $res, qr{signal};
+unlike $res, qr{ok};
 
