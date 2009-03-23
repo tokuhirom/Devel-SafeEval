@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 24;
+use Test::More tests => 23;
 use Devel::SafeEval;
 
 like(
@@ -355,25 +355,6 @@ like(
 ...
     ),
     qr{do not call me},
-    'hacked by kazuho++'
-);
-
-like(
-    Devel::SafeEval->run(
-        timeout => 1,
-        code    => <<'...',
-            BEGIN {
-                my $c = 0;
-                use overload;
-                overload::OVERLOAD("UNIVERSAL", q{""}, sub { $c++>1 ? 'JSON::XS' : 'Devel::Peek'});
-                Devel::SafeEval::Defender::load(bless({}, "\0"), 'Devel::Peek::bootstrap')->();
-                *XSLoader::load = sub($;$) {};
-            };
-            use Devel::Peek;
-            Dump({});
-...
-    ),
-    qr{untrusted module Devel::Peek},
     'hacked by kazuho++'
 );
 

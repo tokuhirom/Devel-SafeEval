@@ -180,7 +180,7 @@ sub import {
                 die "don't ref \$VERSION";
             }
 
-            Devel::SafeEval::Defender::load($module, "${module}::bootstrap");
+            Devel::SafeEval::Defender::load($module);
         };
         undef *XSLoader::load;
         undef *DynaLoader::bootstrap;

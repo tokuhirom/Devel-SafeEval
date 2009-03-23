@@ -55,16 +55,18 @@ CODE:
     c = _c;
 
 CV*
-load(const char*_module, const char*_bootstrap_method)
+load(const char*_module)
 CODE:
     dSP;
+    ASSERT(items == 1);
 
     SV * boot_symref;
     SV * libref;
     SV * filename;
     SV * bootname;
     SV * module = sv_2mortal(newSVpv(_module, strlen(_module)));
-    SV * bootstrap_method = sv_2mortal(newSVpv(_bootstrap_method, strlen(_bootstrap_method)));
+    SV * bootstrap_method = sv_2mortal(newSVpv(_module, strlen(_module)));
+    sv_catpvn(bootstrap_method, "::bootstrap", strlen("::bootstrap"));
 
     /* setup_mod */
     {
@@ -167,8 +169,10 @@ CODE:
             call_sv((SV*)dl_find_symbol, G_SCALAR);
             SPAGAIN;
             SV* ret = POPs;
-            SvREFCNT_inc(ret);
             ASSERT(ret);
+            ASSERT(ret != &PL_sv_undef);
+            ASSERT(SvIOK(ret));
+            SvREFCNT_inc(ret);
             boot_symref = ret;
             PUTBACK;
 
@@ -198,6 +202,8 @@ CODE:
             call_sv((SV*)dl_install_xsub, G_SCALAR);
             SPAGAIN;
             SV* retref = POPs;
+            ASSERT(retref);
+            ASSERT(SvROK(retref));
             SV*ret = SvRV(retref);
             ASSERT(SvTYPE(ret) == SVt_PVCV);
             RETVAL = (CV*)ret;
