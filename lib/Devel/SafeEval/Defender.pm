@@ -102,9 +102,8 @@ sub import {
 
         my $dlext = $Config::Config{'dlext'};
         my $setup_mod = sub {
-            $validator->();
+            my $module = "$_[0]";
 
-            my $module = shift;
             my @modparts = split( /::/, $module );
             my $modfname = $modparts[-1];
 
