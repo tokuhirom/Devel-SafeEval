@@ -67,6 +67,7 @@ sub import {
             alarm $alarm;
         };
 
+        my @TRUE_INC = @INC;
         my $TRUE_INC = join "\0", @INC;
 
         my $validator = sub {
@@ -108,8 +109,8 @@ sub import {
             my $modfname = $modparts[-1];
 
             my $modpname   = join( '/', @modparts );
-            my $file = sub {;
-                for my $path (@INC) {
+            my $file = sub {
+                for my $path (@TRUE_INC) {
                     my $dir = "$path/auto/$modpname";
                     next unless -d $dir;
                     my $try = "$dir/$modfname.${dlext}";
