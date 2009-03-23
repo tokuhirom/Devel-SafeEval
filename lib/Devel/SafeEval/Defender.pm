@@ -67,8 +67,42 @@ sub import {
             alarm $alarm;
         };
 
+        my $TRUE_INC = join "\0", @INC;
+
+        my $validator = sub {
+            if (tied %DB::) {
+                die 'do not tie %DB::';
+            }
+            if (tied %DynaLoader::) {
+                die 'do not tie %DB::';
+            }
+
+            if (tied @INC) {
+                die 'do not tie @INC';
+            }
+            for (@INC) {
+                if (tied $_) {
+                    die 'do not tie $INC[n]';
+                }
+                if (ref $_ ne '') {
+                    die 'do not ref $INC[n]';
+                }
+            }
+            if (tied @INC) {
+                die 'do not tie @INC';
+            }
+            if (tied %INC) {
+                die 'do not tie %INC';
+            }
+            if ( $TRUE_INC ne join( "\0", @INC ) ) {
+                die "do not modify \@INC";
+            }
+        };
+
         my $dlext = $Config::Config{'dlext'};
         my $setup_mod = sub {
+            $validator->();
+
             my $module = shift;
             my @modparts = split( /::/, $module );
             my $modfname = $modparts[-1];
@@ -94,6 +128,7 @@ sub import {
             return ($file, $bootname);
         };
 
+
         Devel::SafeEval::Defender::setup(
             {
                 dl_error          => \&DynaLoader::dl_error,
@@ -106,36 +141,13 @@ sub import {
         );
         undef *Devel::SafeEval::Defender::setup;
 
-        my $TRUE_INC = join "\0", @INC;
         no warnings 'once';
         # code taken from DynaLoader & XSLoader
         $loader = sub ($) {
+            $validator->();
+
             if (tied @_) {
                 die 'do not tie @_';
-            }
-            if (tied %DB::) {
-                die 'do not tie %DB::';
-            }
-            if (tied %DynaLoader::) {
-                die 'do not tie %DB::';
-            }
-
-            if (tied @INC) {
-                die 'do not tie @INC';
-            }
-            for (@INC) {
-                if (tied $_) {
-                    die 'do not tie $INC[n]';
-                }
-                if (ref $_ ne '') {
-                    die 'do not ref $INC[n]';
-                }
-            }
-            if (tied @INC) {
-                die 'do not tie @INC';
-            }
-            if (tied %INC) {
-                die 'do not tie %INC';
             }
             for (@_) {
                 if (tied $_) {
@@ -153,9 +165,6 @@ sub import {
 
             unless (defined $module) {
                 die "Usage: DynaLoader::bootstrap(module)";
-            }
-            if ( $TRUE_INC ne join( "\0", @INC ) ) {
-                die "do not modify \@INC";
             }
 
             # work with static linking too
