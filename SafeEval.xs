@@ -80,7 +80,7 @@ CODE:
             SAVETMPS;
 
             PUSHMARK(sp);
-            XPUSHs(module);
+            XPUSHs(sv_2mortal(newSVsv(module)));
             PUTBACK;
 
             call_sv((SV*)setup_mod, G_ARRAY);
