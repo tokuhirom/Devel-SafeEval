@@ -41,7 +41,7 @@ CODE:
     c = _c;
 
 CV*
-load(SV *module, SV*bootstrap_method)
+load(const char*_module, const char*_bootstrap_method)
 CODE:
     dSP;
 
@@ -49,6 +49,8 @@ CODE:
     SV * libref;
     SV * filename;
     SV * bootname;
+    SV * module = sv_2mortal(newSVpv(_module, strlen(_module)));
+    SV * bootstrap_method = sv_2mortal(newSVpv(_bootstrap_method, strlen(_bootstrap_method)));
 
     /* setup_mod */
     {
