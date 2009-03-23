@@ -23,7 +23,7 @@ Perl_ppaddr_t orig_unpack;
         ASSERT(SvROK(*_xsubref)); \
         assigned_to = SvRV(*_xsubref); \
         ASSERT(assigned_to); \
-        if (!SvTYPE(assigned_to) == SVt_PVCV) { \
+        if (SvTYPE(assigned_to) != SVt_PVCV) { \
             Perl_croak(aTHX_ "oops..."); \
         } \
     } while (0)
